@@ -1,0 +1,667 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer base {
+  :root {
+    /* Radix UI / shadcn color tokens — light mode (Blue Archive inspired) */
+    --background: 220 20% 97%;
+    --foreground: 222 47% 8%;
+    --card: 0 0% 100%;
+    --card-foreground: 222 47% 8%;
+    --popover: 0 0% 100%;
+    --popover-foreground: 222 47% 8%;
+    --primary: 217 80% 39%;
+    --primary-foreground: 210 40% 98%;
+    --secondary: 204 40% 82%;
+    --secondary-foreground: 222 47% 11%;
+    --muted: 210 40% 94%;
+    --muted-foreground: 220 14% 46%;
+    --accent: 210 40% 94%;
+    --accent-foreground: 222 47% 11%;
+    --destructive: 354 70% 54%;
+    --destructive-foreground: 210 40% 98%;
+    --border: 214 32% 88%;
+    --input: 214 32% 88%;
+    --ring: 217 80% 39%;
+    --radius: 0.625rem;
+
+    /* Anime design tokens — light mode */
+    --anime-bg:          #F5FAFF;
+    --anime-card:        rgba(255, 255, 255, 0.94);
+    --anime-card-border: rgba(80, 166, 220, 0.28);
+    --anime-surface:     rgba(236, 247, 255, 0.78);
+    --anime-primary:     #1677D2;
+    --anime-primary-h:   #42A5F5;
+    --anime-sky:         #7DD3FC;
+    --anime-pink:        #FF92A8;
+    --anime-gold:        #D4A574;
+    --anime-purple:      #D9A2E3;
+    --anime-text:        #17324D;
+    --anime-muted:       #425E7A;
+    --anime-nav-muted:   #385672;
+    --anime-success:     #198754;
+    --anime-warning:     #FFC107;
+    --anime-danger:      #DC3545;
+    --vn-panel-bg:       linear-gradient(135deg, rgba(255,255,255,0.92), rgba(231,247,255,0.78) 58%, rgba(255,255,255,0.86));
+    --vn-bubble-bg:      linear-gradient(135deg, rgba(255,255,255,0.92), rgba(240,249,255,0.78));
+    --vn-text:           #17324D;
+    --app-header-bg:     linear-gradient(90deg, rgba(255,255,255,0.92), rgba(232,247,255,0.88));
+    --app-sidebar-bg:    rgba(255, 255, 255, 0.86);
+    --bg-wash:           linear-gradient(180deg,rgba(248,252,255,0.22),rgba(239,249,255,0.38) 48%,rgba(246,251,255,0.58));
+    --bg-left-fade:      linear-gradient(90deg,rgba(248,252,255,0.78),rgba(248,252,255,0.34),transparent);
+    --bg-right-fade:     linear-gradient(270deg,rgba(248,252,255,0.6),transparent);
+    --bg-top-light:      linear-gradient(180deg,rgba(125,211,252,0.18),transparent);
+    --bg-bottom-light:   linear-gradient(0deg,rgba(186,230,253,0.18),transparent);
+  }
+
+  .dark {
+    --background: 224 48% 7%;
+    --foreground: 211 45% 92%;
+    --card: 224 38% 12%;
+    --card-foreground: 211 45% 92%;
+    --popover: 224 40% 10%;
+    --popover-foreground: 211 45% 92%;
+    --primary: 199 94% 58%;
+    --primary-foreground: 210 40% 98%;
+    --secondary: 222 35% 18%;
+    --secondary-foreground: 211 45% 92%;
+    --muted: 223 32% 18%;
+    --muted-foreground: 213 22% 68%;
+    --accent: 218 42% 20%;
+    --accent-foreground: 203 68% 91%;
+    --destructive: 354 72% 62%;
+    --destructive-foreground: 210 40% 98%;
+    --border: 218 32% 24%;
+    --input: 218 32% 24%;
+    --ring: 199 94% 58%;
+
+    --anime-bg:          #07111F;
+    --anime-card:        rgba(13, 24, 43, 0.92);
+    --anime-card-border: rgba(125, 211, 252, 0.26);
+    --anime-surface:     rgba(20, 38, 64, 0.78);
+    --anime-primary:     #38BDF8;
+    --anime-primary-h:   #38BDF8;
+    --anime-sky:         #7DD3FC;
+    --anime-pink:        #FF7AB8;
+    --anime-gold:        #F8C76D;
+    --anime-purple:      #A9B8FF;
+    --anime-text:        #EAF6FF;
+    --anime-muted:       #BFD4E8;
+    --anime-nav-muted:   #D1E4F5;
+    --anime-success:     #18B681;
+    --anime-warning:     #F6B94A;
+    --anime-danger:      #F05A6E;
+    --vn-panel-bg:       linear-gradient(135deg, rgba(9,18,34,0.92), rgba(13,38,64,0.82) 58%, rgba(9,16,30,0.92));
+    --vn-bubble-bg:      linear-gradient(135deg, rgba(14,27,48,0.94), rgba(15,43,72,0.82));
+    --vn-text:           #EAF6FF;
+    --app-header-bg:     linear-gradient(90deg, rgba(7,13,26,0.94), rgba(11,31,51,0.88));
+    --app-sidebar-bg:    rgba(7, 13, 26, 0.9);
+    --bg-wash:           linear-gradient(180deg,rgba(3,8,18,0.62),rgba(5,13,25,0.76) 48%,rgba(6,12,23,0.88));
+    --bg-left-fade:      linear-gradient(90deg,rgba(4,10,20,0.9),rgba(5,14,27,0.48),transparent);
+    --bg-right-fade:     linear-gradient(270deg,rgba(5,12,24,0.82),transparent);
+    --bg-top-light:      linear-gradient(180deg,rgba(56,189,248,0.16),transparent);
+    --bg-bottom-light:   linear-gradient(0deg,rgba(9,18,34,0.88),transparent);
+  }
+}
+
+@layer base {
+  * {
+    @apply border-border;
+  }
+  html {
+    min-height: 100%;
+    overflow-x: hidden;
+  }
+  body {
+    @apply bg-background text-foreground;
+    font-family: 'Noto Sans JP', 'Inter', system-ui, -apple-system, sans-serif;
+    background-color: var(--anime-bg);
+    overflow-x: hidden;
+    transition: background-color 260ms ease, color 260ms ease;
+  }
+}
+
+@keyframes progress {
+  0% { transform: translateX(-100%); width: 40%; }
+  50% { width: 60%; }
+  100% { transform: translateX(250%); width: 40%; }
+}
+
+@keyframes shimmer-blue {
+  from { background-position: 200% 0; }
+  to { background-position: -200% 0; }
+}
+
+@keyframes float {
+  0%, 100% { transform: translateY(0); }
+  50% { transform: translateY(-5px); }
+}
+
+@keyframes character-enter {
+  0% {
+    opacity: 0;
+    transform: translateY(18px) scale(0.96);
+    filter: blur(8px) saturate(1.15);
+  }
+  62% {
+    opacity: 1;
+    transform: translateY(-4px) scale(1.015);
+    filter: blur(0) saturate(1.08);
+  }
+  100% {
+    opacity: 1;
+    transform: translateY(0) scale(1);
+    filter: blur(0) saturate(1);
+  }
+}
+
+@keyframes press-ripple {
+  0% { opacity: 0.52; transform: translate(-50%, -50%) scale(0.2); }
+  100% { opacity: 0; transform: translate(-50%, -50%) scale(1.7); }
+}
+
+/* CSS @property for rotating gradient border — GPU accelerated */
+@property --gradient-angle {
+  syntax: '<angle>';
+  initial-value: 0deg;
+  inherits: false;
+}
+
+@keyframes rotate-gradient {
+  to { --gradient-angle: 360deg; }
+}
+
+@layer utilities {
+  /* ── Glass morphism ── */
+  .glass {
+    background: linear-gradient(135deg, rgba(255, 255, 255, 0.88), rgba(239, 249, 255, 0.72));
+    backdrop-filter: blur(18px) saturate(1.08);
+    -webkit-backdrop-filter: blur(18px) saturate(1.08);
+    border: 1px solid rgba(125, 211, 252, 0.28);
+    box-shadow: 0 18px 44px rgba(40, 128, 190, 0.12);
+  }
+  .dark .glass {
+    background: linear-gradient(135deg, rgba(13, 24, 43, 0.84), rgba(17, 39, 65, 0.72));
+    border-color: rgba(125, 211, 252, 0.24);
+    box-shadow: 0 18px 44px rgba(0, 0, 0, 0.32);
+  }
+
+  .glass-strong {
+    background: linear-gradient(135deg, rgba(255, 255, 255, 0.94), rgba(232, 247, 255, 0.84));
+    backdrop-filter: blur(22px) saturate(1.12);
+    -webkit-backdrop-filter: blur(22px) saturate(1.12);
+    border: 1px solid rgba(125, 211, 252, 0.36);
+    box-shadow: 0 22px 54px rgba(40, 128, 190, 0.16);
+  }
+  .dark .glass-strong {
+    background: linear-gradient(135deg, rgba(10, 20, 36, 0.94), rgba(16, 39, 64, 0.84));
+    border-color: rgba(125, 211, 252, 0.32);
+    box-shadow: 0 22px 54px rgba(0, 0, 0, 0.36);
+  }
+
+  /* ── Glow effects ── */
+  .glow-blue {
+    box-shadow: 0 0 8px rgba(20, 85, 180, 0.45);
+  }
+  .glow-blue-lg {
+    box-shadow: 0 0 20px rgba(20, 85, 180, 0.35);
+  }
+  .glow-pink {
+    box-shadow: 0 0 8px rgba(255, 146, 168, 0.5);
+  }
+  .glow-gold {
+    box-shadow: 0 0 8px rgba(212, 165, 116, 0.5);
+  }
+  .glow-gold-lg {
+    box-shadow: 0 0 20px rgba(212, 165, 116, 0.4);
+  }
+
+  /* ── Hover lift (Anime community standard) ── */
+  .hover-lift {
+    transition: transform 200ms cubic-bezier(0.4, 0, 0.2, 1),
+                box-shadow 200ms cubic-bezier(0.4, 0, 0.2, 1);
+  }
+  .hover-lift:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 8px 24px rgba(0, 0, 0, 0.12);
+  }
+  .dark .hover-lift:hover {
+    box-shadow: 0 12px 34px rgba(0, 0, 0, 0.46), 0 0 22px rgba(56, 189, 248, 0.1);
+  }
+
+  .anime-pressable {
+    position: relative;
+    overflow: hidden;
+    transform: translateZ(0);
+    transition:
+      transform 150ms cubic-bezier(0.2, 0.8, 0.2, 1),
+      box-shadow 180ms ease,
+      filter 180ms ease,
+      background-color 180ms ease,
+      border-color 180ms ease;
+  }
+  .anime-pressable:hover {
+    filter: saturate(1.05) brightness(1.03);
+  }
+  .anime-pressable:active {
+    transform: translateY(1px) scale(0.975);
+    filter: saturate(1.16) brightness(1.08);
+  }
+  .anime-pressable::before {
+    content: '';
+    position: absolute;
+    left: var(--press-x, 50%);
+    top: var(--press-y, 50%);
+    width: 140%;
+    aspect-ratio: 1;
+    border-radius: 9999px;
+    pointer-events: none;
+    background: radial-gradient(circle, rgba(255,255,255,0.42), rgba(125,211,252,0.18) 34%, transparent 62%);
+    opacity: 0;
+    transform: translate(-50%, -50%) scale(0.2);
+  }
+  .anime-pressable:active::before {
+    animation: press-ripple 420ms ease-out;
+  }
+
+  .character-pop {
+    animation: character-enter 560ms cubic-bezier(0.16, 1, 0.3, 1) both;
+    transform-origin: 50% 92%;
+  }
+  .character-pop > img {
+    display: block;
+    max-width: 100%;
+    max-height: 100%;
+  }
+  .character-float {
+    animation: float 4.8s ease-in-out infinite;
+  }
+  .animate-float {
+    animation: float 3.8s ease-in-out infinite;
+  }
+
+  .anime-nav-icon {
+    width: 2.65rem;
+    height: 2.65rem;
+    border-radius: 9999px;
+    background-repeat: no-repeat;
+    background-size: 400% 200%;
+    filter: drop-shadow(0 8px 12px rgba(43, 93, 180, 0.16));
+    transition: transform 180ms ease, filter 180ms ease;
+  }
+  .group:hover .anime-nav-icon,
+  .anime-nav-icon:hover {
+    transform: translateY(-2px) scale(1.08) rotate(-2deg);
+    filter: drop-shadow(0 12px 18px rgba(56, 189, 248, 0.24)) saturate(1.08);
+  }
+  .dark .anime-nav-icon {
+    filter: drop-shadow(0 10px 18px rgba(0, 0, 0, 0.34)) drop-shadow(0 0 12px rgba(125, 211, 252, 0.14));
+  }
+
+  .hoyolab-tabs {
+    scrollbar-width: none;
+  }
+  .hoyolab-tabs::-webkit-scrollbar {
+    display: none;
+  }
+
+  .character-stage-card {
+    position: relative;
+    overflow: hidden;
+    border: 1px solid var(--anime-card-border);
+    background:
+      radial-gradient(circle at 50% 0%, rgba(255, 146, 182, 0.18), transparent 36%),
+      linear-gradient(180deg, rgba(255,255,255,0.74), rgba(237,248,255,0.58));
+    box-shadow: 0 16px 38px rgba(33, 122, 184, 0.12);
+  }
+  .character-stage-card img {
+    object-position: center bottom;
+  }
+  .mini-character-guide {
+    display: flex;
+    align-items: center;
+    gap: 0.85rem;
+    position: relative;
+    background:
+      linear-gradient(90deg, rgba(255,255,255,0.96), rgba(255,255,255,0.9)),
+      url('/design/mini-commentary-stage.png') center / cover no-repeat;
+  }
+  .mini-character-guide::after {
+    content: '';
+    position: absolute;
+    left: 4.8rem;
+    top: 1.2rem;
+    width: 0.85rem;
+    height: 0.85rem;
+    transform: rotate(45deg);
+    border-left: 1px solid var(--anime-card-border);
+    border-bottom: 1px solid var(--anime-card-border);
+    background: inherit;
+  }
+  .character-profile-modal {
+    box-shadow: 0 34px 90px rgba(33, 122, 184, 0.28), 0 0 0 1px rgba(125, 211, 252, 0.18);
+  }
+  .character-speech-bubble {
+    display: flex;
+    gap: 0.85rem;
+    align-items: flex-start;
+    border: 1px solid var(--anime-card-border);
+    border-radius: 1.5rem;
+    background: rgba(255,255,255,0.88);
+    padding: 1rem 1.1rem;
+    color: var(--anime-text);
+    font-size: 0.92rem;
+    font-weight: 700;
+    line-height: 1.85;
+    box-shadow: 0 16px 42px rgba(33, 122, 184, 0.14);
+    backdrop-filter: blur(16px);
+  }
+  .gallery-unlock-card {
+    position: relative;
+    overflow: hidden;
+    border-radius: 1.5rem;
+    border: 1px solid var(--anime-card-border);
+    box-shadow: 0 16px 38px rgba(33, 122, 184, 0.13);
+  }
+  .chart-character-stage {
+    position: relative;
+    overflow: hidden;
+    border: 1px solid var(--anime-card-border);
+    background:
+      linear-gradient(135deg, rgba(255,255,255,0.96), rgba(237,248,255,0.9)),
+      url('/design/mini-commentary-stage.png') center / cover no-repeat;
+    box-shadow: 0 18px 48px rgba(33, 122, 184, 0.14);
+  }
+  .chart-character-stage::before {
+    content: '';
+    position: absolute;
+    inset: 0;
+    pointer-events: none;
+    background:
+      linear-gradient(90deg, transparent 0 28px, rgba(125,211,252,0.08) 29px 30px),
+      linear-gradient(0deg, transparent 0 28px, rgba(125,211,252,0.06) 29px 30px);
+    background-size: 30px 30px;
+  }
+  .dark .character-stage-card {
+    background:
+      radial-gradient(circle at 50% 0%, rgba(125, 211, 252, 0.16), transparent 38%),
+      linear-gradient(180deg, rgba(12,24,43,0.78), rgba(8,17,32,0.66));
+    box-shadow: 0 18px 44px rgba(0, 0, 0, 0.36);
+  }
+  .dark .mini-character-guide {
+    background:
+      linear-gradient(90deg, rgba(8,17,32,0.94), rgba(8,17,32,0.88)),
+      url('/design/mini-commentary-stage.png') center / cover no-repeat;
+  }
+  .dark .character-speech-bubble {
+    background: rgba(8,17,32,0.88);
+    box-shadow: 0 18px 46px rgba(0, 0, 0, 0.34);
+  }
+  .dark .chart-character-stage {
+    background:
+      linear-gradient(135deg, rgba(8,17,32,0.96), rgba(8,17,32,0.88)),
+      url('/design/mini-commentary-stage.png') center / cover no-repeat;
+  }
+
+  .hoyolab-tabs a:not([aria-current='page']) {
+    text-shadow: 0 1px 8px rgba(255,255,255,0.34);
+  }
+  .dark .hoyolab-tabs a:not([aria-current='page']) {
+    text-shadow: 0 1px 10px rgba(0,0,0,0.72);
+  }
+
+  /* ── Gradient text ── */
+  .text-gradient {
+    background: linear-gradient(135deg, #1455B4, #4A7FD4, #0DCAF0);
+    -webkit-background-clip: text;
+    background-clip: text;
+    -webkit-text-fill-color: transparent;
+  }
+  .text-gradient-gold {
+    background: linear-gradient(135deg, #D4A574, #E8C88A, #D4A574);
+    -webkit-background-clip: text;
+    background-clip: text;
+    -webkit-text-fill-color: transparent;
+  }
+
+  /* ── Game gradient backgrounds ── */
+  .bg-game-gradient {
+    background: linear-gradient(135deg, #1455B4 0%, #2A52BE 50%, #D9A2E3 100%);
+  }
+  .bg-anime-surface {
+    background-color: var(--anime-surface);
+  }
+  .bg-anime-card {
+    background-color: var(--anime-card);
+    border: 1px solid var(--anime-card-border);
+  }
+
+  /* ── Shimmer loading effect ── */
+  .shimmer-blue {
+    background: linear-gradient(
+      90deg,
+      transparent 0%,
+      rgba(20, 85, 180, 0.15) 50%,
+      transparent 100%
+    );
+    background-size: 200% 100%;
+    animation: shimmer-blue 1.5s linear infinite;
+  }
+
+  /* ── Dot grid background (Arknights style) ── */
+  .bg-grid {
+    background-image: radial-gradient(
+      circle,
+      rgba(20, 85, 180, 0.12) 1px,
+      transparent 1px
+    );
+    background-size: 24px 24px;
+  }
+
+  .academy-shell {
+    position: relative;
+  }
+  .academy-shell::before {
+    content: '';
+    position: absolute;
+    inset: 12px;
+    pointer-events: none;
+    border: 1px solid rgba(56, 189, 248, 0.18);
+    clip-path: polygon(0 0, 18% 0, 18% 1px, 82% 1px, 82% 0, 100% 0, 100% 100%, 82% 100%, 82% calc(100% - 1px), 18% calc(100% - 1px), 18% 100%, 0 100%);
+  }
+
+  .academy-panel {
+    position: relative;
+    overflow: hidden;
+    border: 1px solid var(--anime-card-border);
+    background:
+      linear-gradient(135deg, rgba(255,255,255,0.9), rgba(237,248,255,0.76)),
+      linear-gradient(90deg, rgba(56,189,248,0.08), transparent 42%);
+    box-shadow: 0 16px 38px rgba(33, 122, 184, 0.13);
+    transition: background 260ms ease, border-color 260ms ease, box-shadow 220ms ease, transform 180ms ease;
+  }
+  .dark .academy-panel {
+    background:
+      linear-gradient(135deg, rgba(11,22,40,0.9), rgba(14,38,64,0.76)),
+      linear-gradient(90deg, rgba(56,189,248,0.14), transparent 44%);
+    box-shadow: 0 18px 46px rgba(0, 0, 0, 0.36), inset 0 1px 0 rgba(255,255,255,0.05);
+  }
+  .academy-panel::after {
+    content: '';
+    position: absolute;
+    inset: 0;
+    pointer-events: none;
+    background:
+      linear-gradient(90deg, transparent, rgba(255,255,255,0.62), transparent);
+    transform: translateX(-120%);
+    transition: transform 600ms ease;
+  }
+  .dark .academy-panel::after {
+    background:
+      linear-gradient(90deg, transparent, rgba(125,211,252,0.16), transparent);
+  }
+  .academy-panel:hover::after {
+    transform: translateX(120%);
+  }
+
+  .academy-kicker {
+    font-family: 'Rajdhani', sans-serif;
+    color: var(--anime-primary);
+    font-size: 0.72rem;
+    font-weight: 700;
+    letter-spacing: 0;
+    text-transform: uppercase;
+  }
+  .dark .bg-grid {
+    background-image: radial-gradient(
+      circle,
+      rgba(125, 211, 252, 0.14) 1px,
+      transparent 1px
+    );
+  }
+
+  .dark .text-gradient {
+    background: linear-gradient(135deg, #EAF6FF, #7DD3FC, #A9B8FF);
+    -webkit-background-clip: text;
+    background-clip: text;
+    -webkit-text-fill-color: transparent;
+  }
+
+  /* ── Anime frame decoration (corner clips) ── */
+  .anime-frame {
+    position: relative;
+  }
+  .anime-frame::before,
+  .anime-frame::after {
+    content: '';
+    position: absolute;
+    width: 10px;
+    height: 10px;
+    border-color: var(--anime-primary);
+    border-style: solid;
+  }
+  .anime-frame::before {
+    top: 0;
+    left: 0;
+    border-width: 2px 0 0 2px;
+  }
+  .anime-frame::after {
+    bottom: 0;
+    right: 0;
+    border-width: 0 2px 2px 0;
+  }
+
+  /* ── Status badge ── */
+  .badge-active {
+    background: rgba(25, 135, 84, 0.12);
+    color: #198754;
+    border: 1px solid rgba(25, 135, 84, 0.25);
+  }
+  .dark .badge-active {
+    background: rgba(46, 204, 113, 0.15);
+    color: #2ECC71;
+    border-color: rgba(46, 204, 113, 0.3);
+  }
+  .badge-warning {
+    background: rgba(255, 193, 7, 0.12);
+    color: #B8860B;
+    border: 1px solid rgba(255, 193, 7, 0.25);
+  }
+  .dark .badge-warning {
+    background: rgba(255, 212, 59, 0.15);
+    color: #FFD43B;
+    border-color: rgba(255, 212, 59, 0.3);
+  }
+  .badge-danger {
+    background: rgba(220, 53, 69, 0.12);
+    color: #DC3545;
+    border: 1px solid rgba(220, 53, 69, 0.25);
+  }
+  .dark .badge-danger {
+    background: rgba(255, 107, 107, 0.15);
+    color: #FF6B6B;
+    border-color: rgba(255, 107, 107, 0.3);
+  }
+
+  /* ── Rajdhani font for numbers ── */
+  .font-game {
+    font-family: 'Rajdhani', sans-serif;
+    letter-spacing: 0;
+  }
+
+  /* ── Accent top-border card ── */
+  .card-accent-top {
+    border-top: 3px solid var(--anime-primary);
+  }
+  .card-accent-top-gold {
+    border-top: 3px solid var(--anime-gold);
+  }
+  .card-accent-top-pink {
+    border-top: 3px solid var(--anime-pink);
+  }
+
+  /* ── XP progress bar ── */
+  .xp-bar {
+    background: linear-gradient(90deg, #1455B4, #4A7FD4, #0DCAF0);
+    box-shadow: 0 0 8px rgba(20, 85, 180, 0.5);
+    border-radius: 9999px;
+    transition: width 600ms cubic-bezier(0, 0, 0.2, 1);
+  }
+
+  /* ── Rotating gradient border (CSS @property — Chrome 85+, FF 128+, Safari 16.4+) ── */
+  .rotating-border {
+    position: relative;
+    isolation: isolate;
+  }
+  .rotating-border::before {
+    content: '';
+    position: absolute;
+    inset: -2px;
+    border-radius: inherit;
+    padding: 2px;
+    background: conic-gradient(
+      from var(--gradient-angle, 0deg),
+      #1455B4,
+      #FF92A8,
+      #D4A574,
+      #0DCAF0,
+      #1455B4
+    );
+    -webkit-mask:
+      linear-gradient(#fff 0 0) content-box,
+      linear-gradient(#fff 0 0);
+    -webkit-mask-composite: xor;
+    mask-composite: exclude;
+    animation: rotate-gradient 3s linear infinite;
+    z-index: -1;
+  }
+  /* Fallback for browsers without @property support */
+  @supports not (background: conic-gradient(from 1turn, red, blue)) {
+    .rotating-border::before {
+      animation: none;
+      background: linear-gradient(135deg, #1455B4, #D4A574);
+    }
+  }
+
+  /* ── Shimmer skeleton ── */
+  .skeleton-shimmer {
+    background: linear-gradient(
+      90deg,
+      var(--anime-surface) 25%,
+      rgba(20, 85, 180, 0.08) 50%,
+      var(--anime-surface) 75%
+    );
+    background-size: 200% 100%;
+    animation: shimmer-blue 1.5s linear infinite;
+  }
+  .dark .skeleton-shimmer {
+    background: linear-gradient(
+      90deg,
+      var(--anime-surface) 25%,
+      rgba(74, 127, 212, 0.12) 50%,
+      var(--anime-surface) 75%
+    );
+    background-size: 200% 100%;
+  }
+}

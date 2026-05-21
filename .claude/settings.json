@@ -1,0 +1,81 @@
+{
+  "permissions": {
+    "deny": [
+      "Bash(rm -rf *)",
+      "Bash (curl *)",
+      "Bash (wget *)",
+      "Bash (chmod 777 *)",
+      "Read(./.env)",
+      "Read(./.env.*)",
+      "Read(./secrets/**)",
+      "Read(./**/*.pem)",
+      "Read(./**/*.key)"
+    ]
+  },
+
+  "enabledPlugins": {
+    "codex@codex-plugin-cc": true,
+    "company@cc-company": true,
+    "algorithmic-art@skills": true,
+    "brand-guidelines@skills": true,
+    "canvas-design@skills": true,
+    "claude-api@skills": true,
+    "doc-coauthoring@skills": true,
+    "docx@skills": true,
+    "frontend-design@skills": true,
+    "internal-comms@skills": true,
+    "mcp-builder@skills": true,
+    "pdf@skills": true,
+    "pptx@skills": true,
+    "skill-creator@skills": true,
+    "slack-gif-creator@skills": true,
+    "theme-factory@skills": true,
+    "web-artifacts-builder@skills": true,
+    "webapp-testing@skills": true,
+    "xlsx@skills": true,
+    "api-design@everything-claude-code": true,
+    "article-writing@everything-claude-code": true,
+    "backend-patterns@everything-claude-code": true,
+    "e2e-testing@everything-claude-code": true,
+    "exa-search@everything-claude-code": true,
+    "frontend-patterns@everything-claude-code": true,
+    "frontend-slides@everything-claude-code": true,
+    "nextjs-turbopack@everything-claude-code": true,
+    "security-review@everything-claude-code": true,
+    "tdd-workflow@everything-claude-code": true,
+    "verification-loop@everything-claude-code": true,
+    "video-editing@everything-claude-code": true
+  },
+
+  "hooks": {
+    "PostToolUse": [
+      {
+        "matcher": "Edit|Write",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "node .claude/hooks/post-edit-format.js",
+            "timeout": 10,
+            "statusMessage": "Formatting code..."
+          }
+        ]
+      }
+    ],
+    "PreToolUse": [
+      {
+        "matcher": "Bash",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "node .claude/hooks/pre-bash-security.js",
+            "timeout": 1,
+            "statusMessage": "Checking command safety..."
+          }
+        ]
+      }
+    ]
+  },
+
+  "theme": "light-daltonized",
+  "model": "claude-sonnet-4-6"
+}

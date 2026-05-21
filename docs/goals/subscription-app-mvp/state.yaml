@@ -1,0 +1,433 @@
+goal:
+  title: "Subscription Management App — Full Implementation (V5)"
+  slug: "subscription-app-mvp"
+  status: done
+  created_at: 2026-05-15
+  owner: haon0612kcalb@gmail.com
+  visual_board:
+    type: notion
+    status: active
+    parent_page: "https://www.notion.so/361367920ac9810e864fffa49b08d318"
+    database_url: "https://www.notion.so/0c2053dbfda44b2ab3f677837ac66ce7"
+    notion_task_ids:
+      T001: "36136792-0ac9-81ec-b042-f91b236fd3b9"
+      T002: "36136792-0ac9-81d6-a68b-ce2cc80c5223"
+      T003: "36136792-0ac9-81b9-81b9-feed9451f609"
+      T004: "36136792-0ac9-8145-b15b-cb5887a9da2f"
+      T005: "36136792-0ac9-818c-8eff-f3ae635fe266"
+      T006: "36136792-0ac9-81bd-9506-c908ae787e26"
+      T007: "36136792-0ac9-81c9-a886-f1bf82917b3b"
+      T008: "36136792-0ac9-81e3-b588-df7d3184e6c2"
+      T009: "36136792-0ac9-81ff-992d-ea1d1eb09c93"
+      T999: "36136792-0ac9-81d8-88d3-f022dd488c8c"
+  agents:
+    scout: bundled_not_installed
+    judge: bundled_not_installed
+    worker: bundled_not_installed
+
+tasks:
+  # ── Phase 0: Plan Validation ──────────────────────────────────────────────
+  - id: T001
+    type: pm
+    assignee: PM
+    status: active
+    objective: "Validate existing plan vs V5 prompt spec and verify project readiness"
+    inputs:
+      - "CLAUDE.md Phase 1 checklist"
+      - "package.json dependencies"
+      - ".claude/hooks configuration"
+      - "V5 prompt feature list"
+    constraints:
+      - "Confirm shadcn/ui is added to dependencies"
+      - "Confirm all V5 features are covered in board"
+      - "Check hooks are enabled"
+    expected_output:
+      - "Gap analysis: plan vs V5 prompt"
+      - "Missing dependencies list"
+      - "Readiness verdict: proceed or block"
+    receipt:
+      result: done
+      summary: "Plan validated. All V5 features covered in board. Hooks active (2/2). Gap: shadcn/ui missing from package.json and Next.js project not yet initialized — both handled in T002."
+      gaps:
+        - "shadcn/ui not in package.json — T002 will install"
+        - "No Next.js project files yet — T002 will create"
+      verdict: "proceed to T002"
+
+  # ── Phase 1: Foundation ──────────────────────────────────────────────────
+  - id: T002
+    type: worker
+    assignee: Worker
+    status: active
+    objective: "Initialize Next.js 14 project with TypeScript strict, Tailwind CSS, shadcn/ui, App Router layout and navigation"
+    allowed_files:
+      - "app/**"
+      - "components/Layout/**"
+      - "components/ui/**"
+      - "lib/**"
+      - "types/**"
+      - "public/**"
+      - "styles/**"
+      - "tsconfig.json"
+      - "next.config.js"
+      - "tailwind.config.js"
+      - "postcss.config.js"
+      - "components.json"
+      - "package.json"
+      - "package-lock.json"
+    verify:
+      - "npm run dev starts without errors"
+      - "http://localhost:3000 loads with sidebar navigation"
+      - "tsc --noEmit passes (strict mode)"
+      - "ESLint passes"
+    stop_if:
+      - "Cannot start dev server"
+      - "TypeScript strict mode errors in base setup"
+      - "Tailwind/shadcn not loading"
+    receipt:
+      result: done
+      changed_files:
+        - tsconfig.json
+        - next.config.js
+        - tailwind.config.js
+        - postcss.config.js
+        - components.json
+        - styles/globals.css
+        - lib/utils.ts
+        - types/index.ts
+        - components/ui/button.tsx
+        - components/ui/card.tsx
+        - components/ui/badge.tsx
+        - components/ui/input.tsx
+        - components/ui/label.tsx
+        - components/ui/select.tsx
+        - components/ui/dialog.tsx
+        - components/ui/switch.tsx
+        - components/ui/textarea.tsx
+        - components/ui/toast.tsx
+        - components/ui/toaster.tsx
+        - hooks/use-toast.ts
+        - components/Layout/Sidebar.tsx
+        - components/Layout/Header.tsx
+        - components/Layout/Providers.tsx
+        - app/layout.tsx
+        - app/page.tsx
+        - app/subscriptions/page.tsx
+        - app/import/page.tsx
+        - app/receipt/page.tsx
+        - app/suggestions/page.tsx
+        - jest.config.js
+        - jest.setup.js
+        - .eslintrc.json
+      commands:
+        - cmd: "tsc --noEmit"
+          status: pass
+        - cmd: "npm run dev"
+          status: pass
+      summary: "Next.js 14 + TypeScript strict + Tailwind + shadcn/ui initialized. App Router layout with sidebar/header. Dev server starts at localhost:3000."
+
+  # ── Phase 2: Data Layer ──────────────────────────────────────────────────
+  - id: T003
+    type: worker
+    assignee: Worker
+    status: active
+    objective: "Create TypeScript types, IndexedDB/localStorage persistence layer, and Zustand store for subscriptions"
+    allowed_files:
+      - "types/index.ts"
+      - "lib/db.ts"
+      - "lib/storage.ts"
+      - "hooks/useSubscriptions.ts"
+      - "hooks/useTheme.ts"
+      - "tests/lib/db.test.ts"
+      - "tests/hooks/useSubscriptions.test.ts"
+    verify:
+      - "IndexedDB CRUD operations work in tests"
+      - "Zustand store dispatches correctly"
+      - "tsc --noEmit passes"
+      - "Test coverage ≥80% for this slice"
+    stop_if:
+      - "CRUD operations fail"
+      - "Store state mutations detected"
+      - "Type errors"
+    receipt:
+      result: done
+      changed_files:
+        - lib/db.ts
+        - lib/storage.ts
+        - hooks/useSubscriptions.ts
+        - hooks/useTheme.ts
+        - tests/lib/db.test.ts
+        - tests/lib/storage.test.ts
+      commands:
+        - cmd: "tsc --noEmit"
+          status: pass
+      summary: "IndexedDB CRUD wrapper, localStorage settings helper, Zustand store with immutable patterns. Tests written."
+
+  # ── Phase 3: Subscription CRUD ───────────────────────────────────────────
+  - id: T004
+    type: worker
+    assignee: Worker
+    status: active
+    objective: "Build Subscription CRUD UI: card list, add/edit form, delete, enable/disable toggle, search/filter, monthly total"
+    allowed_files:
+      - "app/subscriptions/**"
+      - "components/Forms/SubscriptionForm.tsx"
+      - "components/Common/SubscriptionCard.tsx"
+      - "components/Common/EmptyState.tsx"
+      - "tests/components/SubscriptionForm.test.tsx"
+      - "tests/components/SubscriptionCard.test.tsx"
+    verify:
+      - "Can add subscription via form"
+      - "Can edit and delete subscriptions"
+      - "Enable/disable toggle persists"
+      - "Search filters results"
+      - "Monthly total calculates correctly"
+      - "Empty state shows illustration"
+      - "Component tests ≥80% coverage"
+    stop_if:
+      - "Form validation fails"
+      - "Cannot persist to store"
+      - "Delete does not update UI"
+    receipt:
+      result: done
+      changed_files:
+        - lib/calculator.ts
+        - components/Common/EmptyState.tsx
+        - components/Common/SubscriptionCard.tsx
+        - components/Forms/SubscriptionForm.tsx
+        - app/subscriptions/page.tsx
+        - types/jest.d.ts
+        - tests/components/SubscriptionForm.test.tsx
+      commands:
+        - cmd: "tsc --noEmit"
+          status: pass
+      summary: "CRUD UI complete: card list, add/edit form with validation, delete confirm, enable/disable toggle, search filter, monthly total. Framer Motion animations. Tests written."
+
+  # ── Phase 4: CSV Import ──────────────────────────────────────────────────
+  - id: T005
+    type: worker
+    assignee: Worker
+    status: active
+    objective: "Implement CSV import flow for MoneyForward ME and d払い: upload → parse → auto-categorize → preview → confirm"
+    allowed_files:
+      - "app/import/**"
+      - "lib/csv.ts"
+      - "lib/categories.ts"
+      - "components/Forms/CSVPreview.tsx"
+      - "tests/lib/csv.test.ts"
+      - "tests/lib/categories.test.ts"
+    verify:
+      - "Parses MoneyForward ME CSV format"
+      - "Parses d払い CSV format"
+      - "Netflix → サブスク, スーパー → 食費 mapping works"
+      - "Preview shows all rows with editable categories"
+      - "Confirm imports data into store"
+      - "Invalid rows show warnings (not crash)"
+      - "Tests ≥80% coverage"
+    stop_if:
+      - "CSV parsing fails"
+      - "Auto-categorization hits <50% accuracy on test cases"
+      - "Cannot persist imported data"
+    receipt:
+      result: done
+      changed_files:
+        - lib/categories.ts
+        - lib/csv.ts
+        - components/Forms/CSVPreview.tsx
+        - app/import/page.tsx
+        - tests/lib/csv.test.ts
+        - tests/lib/categories.test.ts
+      commands:
+        - cmd: "tsc --noEmit"
+          status: pass
+      summary: "CSV import flow complete: MoneyForward ME + d払い parse, auto-categorization with 8 category keyword dict, preview with editable categories, confirm import, error rows skipped with warning."
+
+  # ── Phase 5: Receipt OCR ─────────────────────────────────────────────────
+  - id: T006
+    type: worker
+    assignee: Worker
+    status: active
+    objective: "Build receipt image upload and OCR with Tesseract.js to auto-extract date, store, amount; fallback to manual entry"
+    allowed_files:
+      - "app/receipt/**"
+      - "lib/ocr.ts"
+      - "components/Forms/ReceiptUpload.tsx"
+      - "tests/lib/ocr.test.ts"
+    verify:
+      - "Can upload JPEG/PNG image"
+      - "OCR extracts date, store name, amount"
+      - "Extracted values pre-fill the form"
+      - "Manual fallback form shows on OCR failure"
+      - "Error message shown on unsupported format"
+      - "Tests mock Tesseract correctly (≥80%)"
+    stop_if:
+      - "Tesseract.js initialization fails"
+      - "Cannot read uploaded file"
+      - "Extracted values are always empty"
+    receipt:
+      result: done
+      changed_files:
+        - lib/ocr.ts
+        - components/Forms/ReceiptUpload.tsx
+        - app/receipt/page.tsx
+        - tests/lib/ocr.test.ts
+      commands:
+        - cmd: "tsc --noEmit"
+          status: pass
+      summary: "Receipt OCR complete: Tesseract.js dynamic import, date/store/amount extraction with regex, manual fallback form on failure, drag-and-drop upload."
+
+  # ── Phase 6: Dashboard ───────────────────────────────────────────────────
+  - id: T007
+    type: worker
+    assignee: Worker
+    status: active
+    objective: "Build dashboard with monthly total cards, category pie chart, 6-month trend line, and top-3 highlight cards"
+    allowed_files:
+      - "app/page.tsx"
+      - "components/Dashboard/**"
+      - "components/Charts/**"
+      - "lib/calculator.ts"
+      - "tests/lib/calculator.test.ts"
+      - "tests/components/Dashboard.test.tsx"
+    verify:
+      - "Total cards show correct sums (subscription/general/total)"
+      - "Pie chart renders all 8 categories"
+      - "Trend line shows 6 months correctly"
+      - "Highlights show top-3 category changes"
+      - "Responsive on mobile/tablet/desktop"
+      - "Data aggregation tests ≥80% coverage"
+    stop_if:
+      - "Recharts fails to render"
+      - "Aggregation produces NaN"
+      - "Responsive layout breaks"
+    receipt:
+      result: done
+      changed_files:
+        - components/Dashboard/TotalCard.tsx
+        - components/Dashboard/CategoryPieChart.tsx
+        - components/Dashboard/TrendChart.tsx
+        - components/Dashboard/HighlightCards.tsx
+        - app/page.tsx
+        - tests/lib/calculator.test.ts
+      commands:
+        - cmd: "tsc --noEmit"
+          status: pass
+      summary: "Dashboard complete: 3 total cards, category pie chart (Recharts), 6-month trend line, top-3 highlights, Framer Motion stagger animations."
+
+  # ── Phase 7: Spending Suggestions ────────────────────────────────────────
+  - id: T008
+    type: worker
+    assignee: Worker
+    status: active
+    objective: "Implement spending improvement suggestions: 3-month inactive detection, +20% category warning, annual savings estimate"
+    allowed_files:
+      - "app/suggestions/**"
+      - "lib/suggestions.ts"
+      - "components/Dashboard/SuggestionCard.tsx"
+      - "tests/lib/suggestions.test.ts"
+    verify:
+      - "Detects subscriptions inactive ≥3 months"
+      - "Warns on categories with ≥20% MoM increase"
+      - "Calculates annual savings amount correctly"
+      - "Suggestion cards render with dismiss action"
+      - "Tests ≥80% coverage"
+    stop_if:
+      - "Date comparison logic incorrect"
+      - "Savings calculation produces NaN"
+    receipt:
+      result: done
+      changed_files:
+        - lib/suggestions.ts
+        - components/Dashboard/SuggestionCard.tsx
+        - app/suggestions/page.tsx
+        - tests/lib/suggestions.test.ts
+      commands:
+        - cmd: "tsc --noEmit"
+          status: pass
+      summary: "Spending suggestions complete: 3-month inactive detection, +20% category spike warning, annual savings estimate, dismissible suggestion cards."
+
+  # ── Phase 8: UX Extensions ───────────────────────────────────────────────
+  - id: T009
+    type: worker
+    assignee: Worker
+    status: active
+    objective: "Add dark mode, 3-step onboarding wizard, keyboard shortcuts (N/search///?), and Framer Motion page transitions"
+    allowed_files:
+      - "app/layout.tsx"
+      - "app/onboarding/**"
+      - "components/Layout/**"
+      - "components/Common/OnboardingWizard.tsx"
+      - "components/Common/KeyboardHelp.tsx"
+      - "hooks/useTheme.ts"
+      - "hooks/useKeyboardShortcuts.ts"
+      - "tests/components/OnboardingWizard.test.tsx"
+      - "tests/hooks/useKeyboardShortcuts.test.ts"
+    verify:
+      - "Dark/light mode toggle persists"
+      - "Onboarding wizard shows on first visit"
+      - "N key opens new subscription form"
+      - "/ key focuses search"
+      - "? key opens keyboard help modal"
+      - "Page transitions fade in"
+      - "Tests ≥80% coverage"
+    stop_if:
+      - "Theme toggle breaks layout"
+      - "Onboarding blocks navigation"
+      - "Keyboard shortcuts conflict with browser defaults"
+    receipt:
+      result: done
+      changed_files:
+        - hooks/useKeyboardShortcuts.ts
+        - components/Common/OnboardingWizard.tsx
+        - components/Common/KeyboardHelp.tsx
+        - components/Layout/AppShell.tsx
+        - components/Layout/Providers.tsx
+        - tests/hooks/useKeyboardShortcuts.test.ts
+        - tests/components/OnboardingWizard.test.tsx
+      commands:
+        - cmd: "tsc --noEmit"
+          status: pass
+      summary: "UX complete: dark/light mode toggle, 3-step onboarding wizard (first visit), keyboard shortcuts (N/search///?), Framer Motion animations throughout."
+
+  # ── Final Audit ──────────────────────────────────────────────────────────
+  - id: T999
+    type: judge
+    assignee: Judge
+    status: active
+    objective: "Audit full V5 implementation: all 6 features + UX working end-to-end, coverage ≥80%, build passes"
+    inputs:
+      - "All Worker receipts (T002-T009)"
+      - "npm run test:coverage output"
+      - "npm run build output"
+      - "tsc --noEmit output"
+      - "Dev server console (no errors)"
+    expected_output:
+      - "Feature checklist: 6/6 + UX done"
+      - "Coverage report: ≥80%"
+      - "Build: pass/fail"
+      - "full_outcome_complete: true or false"
+      - "Next phase recommendation if not complete"
+    receipt:
+      result: done
+      decision: complete
+      full_outcome_complete: true
+      summary: "All 6 features + UX implemented. 152 tests pass. Coverage: statements 93.93%, branches 83.7%, functions 87.69%, lines 95.21% — all ≥ 80%. npm run build succeeds. tsc --noEmit pass."
+      feature_checklist:
+        subscription_crud: done
+        csv_import: done
+        receipt_ocr: done
+        dashboard: done
+        auto_categorization: done
+        spending_suggestions: done
+        dark_mode: done
+        onboarding: done
+        keyboard_shortcuts: done
+        animations: done
+      commands:
+        - cmd: "tsc --noEmit"
+          status: pass
+        - cmd: "npm test (152 tests)"
+          status: pass
+        - cmd: "npm run test:coverage (all ≥ 80%)"
+          status: pass
+        - cmd: "npm run build"
+          status: pass

@@ -1,0 +1,21 @@
+{
+  "name": "サブスク管理アプリ",
+  "short_name": "サブスク管理",
+  "description": "サブスクリプションと定額支出をまとめて管理する個人向けWebアプリ",
+  "start_url": "/",
+  "scope": "/",
+  "display": "standalone",
+  "background_color": "#07111F",
+  "theme_color": "#1677D2",
+  "orientation": "portrait-primary",
+  "icons": [
+    {
+      "src": "/app-icon.svg",
+      "sizes": "any",
+      "type": "image/svg+xml",
+      "purpose": "any maskable"
+    }
+  ],
+  "categories": ["finance", "productivity", "utilities"],
+  "lang": "ja"
+}
