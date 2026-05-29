@@ -8,7 +8,14 @@ jest.mock('@/lib/db', () => ({
     update: jest.fn().mockResolvedValue(undefined),
     delete: jest.fn().mockResolvedValue(undefined),
     bulkCreate: jest.fn().mockResolvedValue(undefined),
+    replaceAll: jest.fn().mockResolvedValue(undefined),
   },
+}))
+
+jest.mock('@/lib/subscriptionCloudSync', () => ({
+  deleteSubscriptionFromCloud: jest.fn().mockResolvedValue(undefined),
+  syncSubscriptionsFromCloud: jest.fn(async (subscriptions) => subscriptions),
+  uploadSubscriptionToCloud: jest.fn().mockResolvedValue(undefined),
 }))
 
 import { db } from '@/lib/db'

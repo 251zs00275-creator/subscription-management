@@ -3,9 +3,14 @@ import { db } from '@/lib/db'
 import type { Subscription, SubscriptionFormData } from '@/types'
 import { useGameStats } from '@/hooks/useGameStats'
 import { fireConfetti } from '@/lib/confetti'
+import {
+  deleteSubscriptionFromCloud,
+  syncSubscriptionsFromCloud,
+  uploadSubscriptionToCloud,
+} from '@/lib/subscriptionCloudSync'
 
 function generateId(): string {
-  return `sub_${Date.now()}_${Math.random().toString(36).slice(2, 9)}`
+  return crypto.randomUUID()
 }
 
 function now(): string {
@@ -35,7 +40,11 @@ export const useSubscriptions = create<SubscriptionStore>((set, get) => ({
   load: async () => {
     set({ isLoading: true, error: null })
     try {
-      const subscriptions = await db.getAll()
+      const localSubscriptions = await db.getAll()
+      const subscriptions = await syncSubscriptionsFromCloud(localSubscriptions)
+      if (subscriptions !== localSubscriptions) {
+        await db.replaceAll(subscriptions)
+      }
       set({ subscriptions, isLoading: false })
     } catch (err) {
       set({
@@ -55,6 +64,7 @@ export const useSubscriptions = create<SubscriptionStore>((set, get) => ({
     }
     try {
       await db.create(subscription)
+      void uploadSubscriptionToCloud(subscription)
       const newSubs = [...get().subscriptions, subscription]
       set({ subscriptions: newSubs })
       const game = useGameStats.getState()
@@ -78,6 +88,7 @@ export const useSubscriptions = create<SubscriptionStore>((set, get) => ({
     }
     try {
       await db.update(updated)
+      void uploadSubscriptionToCloud(updated)
       set((state) => ({
         subscriptions: state.subscriptions.map((s) =>
           s.id === id ? updated : s
@@ -95,6 +106,7 @@ export const useSubscriptions = create<SubscriptionStore>((set, get) => ({
     set({ error: null })
     try {
       await db.delete(id)
+      void deleteSubscriptionFromCloud(id)
       const remaining = get().subscriptions.filter((s) => s.id !== id)
       set({ subscriptions: remaining })
       const game = useGameStats.getState()
@@ -117,6 +129,7 @@ export const useSubscriptions = create<SubscriptionStore>((set, get) => ({
     }
     try {
       await db.update(updated)
+      void uploadSubscriptionToCloud(updated)
       const newSubs = get().subscriptions.map((s) => (s.id === id ? updated : s))
       set({ subscriptions: newSubs })
       const game = useGameStats.getState()
@@ -138,6 +151,9 @@ export const useSubscriptions = create<SubscriptionStore>((set, get) => ({
     }))
     try {
       await db.bulkCreate(newSubs)
+      newSubs.forEach((subscription) => {
+        void uploadSubscriptionToCloud(subscription)
+      })
       const allSubs = [...get().subscriptions, ...newSubs]
       set({ subscriptions: allSubs, isLoading: false })
       const game = useGameStats.getState()
