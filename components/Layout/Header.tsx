@@ -5,6 +5,7 @@ import { usePathname } from 'next/navigation'
 import { useTheme } from 'next-themes'
 import { Moon, Sun } from 'lucide-react'
 import { AnimeNavIcon } from '@/components/Common/AnimeNavIcon'
+import { CloudSyncButton } from '@/components/Common/CloudSyncButton'
 import { Button } from '@/components/ui/button'
 import { useGameStats } from '@/hooks/useGameStats'
 import { APP_NAV_ITEMS } from '@/lib/navigation'
@@ -86,6 +87,7 @@ export function Header() {
           <Sun className="h-4 w-4 rotate-0 scale-100 text-[var(--anime-gold)] transition-all dark:-rotate-90 dark:scale-0" />
           <Moon className="absolute h-4 w-4 rotate-90 scale-0 text-[var(--anime-sky)] transition-all dark:rotate-0 dark:scale-100" />
         </Button>
+        <CloudSyncButton />
       </div>
     </header>
   )

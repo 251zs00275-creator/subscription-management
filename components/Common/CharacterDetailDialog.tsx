@@ -32,8 +32,8 @@ export function CharacterDetailDialog({ characterId, open, onClose }: CharacterD
         <div className="absolute inset-0 bg-[url('/design/character-profile-stage.png')] bg-cover bg-center opacity-95" />
         <div className="absolute inset-0 bg-[linear-gradient(90deg,rgba(255,255,255,0.12),rgba(255,255,255,0.56)_48%,rgba(236,248,255,0.86))] dark:bg-[linear-gradient(90deg,rgba(7,13,26,0.24),rgba(7,13,26,0.68)_48%,rgba(7,13,26,0.9))]" />
 
-        <div className="relative grid min-h-[680px] lg:grid-cols-[minmax(340px,0.92fr)_minmax(0,1.08fr)]">
-          <section className="relative overflow-hidden p-7 md:p-9">
+        <div className="relative grid min-h-0 lg:min-h-[680px] lg:grid-cols-[minmax(340px,0.92fr)_minmax(0,1.08fr)]">
+          <section className="relative overflow-hidden p-5 pt-7 sm:p-7 md:p-9">
             <div className="absolute left-7 top-7 z-10 rounded-full border border-white/60 bg-white/64 px-4 py-1.5 text-xs font-black text-[var(--anime-primary)] shadow-lg backdrop-blur dark:border-sky-300/22 dark:bg-slate-950/46">
               Guide Profile
             </div>
@@ -48,7 +48,7 @@ export function CharacterDetailDialog({ characterId, open, onClose }: CharacterD
               characterId={characterId}
               variant="pose"
               priority
-              className="character-float relative z-10 mx-auto mt-8 h-[560px] w-full max-w-[430px]"
+              className="character-float relative z-10 mx-auto mt-8 h-[360px] w-full max-w-[430px] sm:h-[480px] lg:h-[560px]"
               imageClassName="h-full w-full object-contain object-bottom drop-shadow-[0_34px_42px_rgba(24,70,120,0.34)]"
               sizes="430px"
             />
@@ -67,7 +67,7 @@ export function CharacterDetailDialog({ characterId, open, onClose }: CharacterD
             </div>
           </section>
 
-          <section className="relative space-y-5 p-6 md:p-8 lg:p-9">
+          <section className="relative space-y-5 p-5 sm:p-6 md:p-8 lg:p-9">
             <DialogHeader className="pr-8">
               <DialogTitle className="text-4xl font-black leading-tight text-gradient md:text-5xl">
                 {character.name}

@@ -39,7 +39,7 @@ export function CharacterSelector({ onChange }: CharacterSelectorProps) {
         <p className="academy-kicker">Guide Unit</p>
         <p className="text-xs font-medium text-[var(--anime-text)]">{CHARACTERS[selected].name}</p>
       </div>
-      <div className="grid grid-cols-2 gap-2">
+      <div className="grid grid-cols-1 gap-2 min-[420px]:grid-cols-2">
         {CHARACTER_IDS.map((id) => {
           const character = CHARACTERS[id]
           const isSelected = selected === id

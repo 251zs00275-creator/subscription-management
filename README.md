@@ -23,6 +23,8 @@
 - レシート画像 OCR と手動修正
 - 月次合計、カテゴリ円グラフ、推移分析、履歴表示
 - 支出削減提案、未使用サブスク検出、カテゴリ増加警告
+- JSON バックアップのエクスポート/インポート、CSV エクスポート
+- Google ログインと Supabase サブスク同期の初期対応
 - ダークモード、オンボーディング、キーボードショートカット
 - 実績 XP、ログインボーナス、キャラクター選択、好感度・ギャラリー解放
 
@@ -69,13 +71,24 @@ vercel deploy --prod
 このアプリはスマホのホーム画面追加に対応するため、`public/manifest.webmanifest` と `public/app-icon.svg` を用意しています。
 Safari / Chrome で公開 URL を開き、「ホーム画面に追加」するとアプリ風に起動できます。
 
-注意: データはブラウザ内の `localStorage` / IndexedDB に保存されるため、PC とスマホ間では自動同期されません。
-端末間同期が必要な場合は、認証とクラウド DB の追加が次の実装候補です。
+Supabase を未設定の場合、データはブラウザ内の `localStorage` / IndexedDB のみに保存されます。
+Supabase 設定後は Google ログインした端末間でサブスク一覧を同期できます。設定・実績・好感度は JSON バックアップで移行できます。
 
 ## データ保存
 
-認証なしの個人利用を前提に、ブラウザ内の `localStorage` と IndexedDB に保存します。
-サーバーサイド DB や外部 API への永続化は現時点ではありません。
+未ログイン時はブラウザ内の `localStorage` と IndexedDB に保存します。
+Supabase の環境変数を設定し Google ログインすると、サブスク一覧は `public.subscriptions` と同期します。
+ローカル保存は残るため、オフライン起動と JSON バックアップの導線は維持されます。
+
+## Supabase 同期
+
+1. Supabase プロジェクトを作成する
+2. `.env.example` を参考に `.env.local` へ `NEXT_PUBLIC_SUPABASE_URL` と `NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY` を設定する
+3. Supabase SQL Editor で `docs/supabase-subscriptions.sql` を実行する
+4. Supabase Auth で Google provider を有効にし、Google OAuth 側へ Supabase callback URL を登録する
+5. Supabase Auth の Redirect URLs に公開 URL とローカル URL の `/subscriptions` 戻り先を追加する
+
+初期同期はサブスク一覧のみです。同じ ID のデータは `updatedAt` が新しい方を採用し、同期後の削除は tombstone で他端末へ伝えます。
 
 ## 主要ディレクトリ
 

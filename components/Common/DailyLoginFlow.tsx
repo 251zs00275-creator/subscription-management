@@ -73,7 +73,7 @@ export function DailyLoginFlow({ disabled = false }: DailyLoginFlowProps) {
   return (
     <>
       <Dialog open={step === 'character'}>
-        <DialogContent className="max-h-[92vh] max-w-6xl overflow-y-auto border border-sky-200/60 p-6 dark:border-sky-300/20">
+        <DialogContent className="max-h-[calc(100dvh-1rem)] max-w-6xl overflow-y-auto border border-sky-200/60 p-4 dark:border-sky-300/20 sm:p-6">
           <div className="absolute inset-0 bg-[url('/design/character-profile-stage.png')] bg-cover bg-center opacity-24" />
           <div className="absolute inset-0 bg-[linear-gradient(180deg,rgba(255,255,255,0.84),rgba(237,248,255,0.92))] dark:bg-[linear-gradient(180deg,rgba(7,13,26,0.9),rgba(8,17,32,0.94))]" />
           <DialogHeader className="relative">
@@ -95,7 +95,7 @@ export function DailyLoginFlow({ disabled = false }: DailyLoginFlowProps) {
                   onClick={() => handleCharacterSelect(id)}
                   className="anime-pressable character-stage-card group block w-full rounded-3xl px-4 pb-4 pt-4 text-left focus:outline-none focus:ring-2 focus:ring-[var(--anime-primary)]"
                 >
-                  <div className="relative flex min-h-[390px] flex-col">
+                  <div className="relative flex min-h-[300px] flex-col sm:min-h-[390px]">
                     <div className="relative z-20">
                       <p className="text-lg font-black text-[var(--anime-text)]">{item.name}</p>
                       <p className="text-xs font-bold text-[var(--anime-muted)]">{item.title}</p>
@@ -108,7 +108,7 @@ export function DailyLoginFlow({ disabled = false }: DailyLoginFlowProps) {
                     <CharacterImage
                       characterId={id}
                       variant="pose"
-                      className="character-float relative z-10 mt-auto h-[330px] w-full transition-transform duration-300 group-hover:scale-[1.04]"
+                      className="character-float relative z-10 mt-auto h-[245px] w-full transition-transform duration-300 group-hover:scale-[1.04] sm:h-[330px]"
                       imageClassName="h-full w-full object-contain object-bottom drop-shadow-2xl"
                       sizes="260px"
                     />
@@ -121,7 +121,7 @@ export function DailyLoginFlow({ disabled = false }: DailyLoginFlowProps) {
       </Dialog>
 
       <Dialog open={step === 'bonus'}>
-        <DialogContent className="max-h-[92vh] max-w-2xl overflow-y-auto">
+        <DialogContent className="max-h-[calc(100dvh-1rem)] max-w-2xl overflow-y-auto">
           <div className="absolute inset-0 bg-[url('/design/character-profile-stage.png')] bg-cover bg-center opacity-32" />
           <div className="relative">
             <DialogHeader>

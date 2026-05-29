@@ -14,7 +14,15 @@ export function AnimatedBackground() {
         fill
         priority
         sizes="100vw"
-        className="object-cover opacity-100"
+        className="hidden object-cover opacity-100 sm:block"
+      />
+      <Image
+        src="/design/academy-mobile-bg.png"
+        alt=""
+        fill
+        priority
+        sizes="100vw"
+        className="object-cover opacity-100 sm:hidden"
       />
       <div className="absolute inset-0" style={{ background: 'var(--bg-wash)' }} />
       <div className="absolute inset-y-0 left-0 w-[30rem]" style={{ background: 'var(--bg-left-fade)' }} />
