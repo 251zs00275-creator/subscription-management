@@ -2,7 +2,7 @@ import { differenceInMonths, parseISO } from 'date-fns'
 import type { Subscription, Suggestion, Category } from '@/types'
 
 function generateId(): string {
-  return `sug_${Date.now()}_${Math.random().toString(36).slice(2, 7)}`
+  return crypto.randomUUID()
 }
 
 export function detectInactiveSubscriptions(
