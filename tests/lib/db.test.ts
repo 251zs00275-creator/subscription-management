@@ -9,6 +9,7 @@ jest.mock('@/lib/db', () => ({
     delete: jest.fn(),
     clear: jest.fn(),
     bulkCreate: jest.fn(),
+    replaceAll: jest.fn(),
   },
 }))
 
@@ -76,6 +77,13 @@ describe('db interface', () => {
     mockDb.bulkCreate.mockResolvedValue(undefined)
     await db.bulkCreate(subs)
     expect(mockDb.bulkCreate).toHaveBeenCalledWith(subs)
+  })
+
+  it('replaceAll calls db.replaceAll with subscriptions', async () => {
+    const subs = [makeSubscription()]
+    mockDb.replaceAll.mockResolvedValue(undefined)
+    await db.replaceAll(subs)
+    expect(mockDb.replaceAll).toHaveBeenCalledWith(subs)
   })
 
   it('getAll returns empty array when no subscriptions', async () => {

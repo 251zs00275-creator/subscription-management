@@ -160,4 +160,24 @@ export const db = {
       lsDb.save([...all, ...subscriptions.filter((s) => !ids.has(s.id))])
     }
   },
+
+  async replaceAll(subscriptions: Subscription[]): Promise<void> {
+    if (!isIndexedDBAvailable()) {
+      lsDb.save(subscriptions)
+      return
+    }
+    try {
+      const database = await openDB()
+      await new Promise<void>((resolve, reject) => {
+        const tx = database.transaction(STORE_NAME, 'readwrite')
+        const store = tx.objectStore(STORE_NAME)
+        store.clear()
+        subscriptions.forEach((subscription) => store.put(subscription))
+        tx.oncomplete = () => resolve()
+        tx.onerror = () => reject(tx.error)
+      })
+    } catch {
+      lsDb.save(subscriptions)
+    }
+  },
 }

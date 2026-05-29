@@ -33,6 +33,7 @@ import { SortableSubscriptionCard } from '@/components/Common/SortableSubscripti
 import { SubscriptionCard } from '@/components/Common/SubscriptionCard'
 import { VisualNovelPanel } from '@/components/Common/VisualNovelPanel'
 import { MiniCharacterGuide } from '@/components/Common/MiniCharacterGuide'
+import { BackupPanel } from '@/components/Common/BackupPanel'
 import { SubscriptionForm } from '@/components/Forms/SubscriptionForm'
 import { EmptyState } from '@/components/Common/EmptyState'
 import { ConfirmDialog } from '@/components/ui/confirm-dialog'
@@ -217,6 +218,16 @@ function SubscriptionsContent() {
         characterId="main-heroine"
         label="List Coach"
         message="カードを並べ替える前に、金額・支払日・有効状態を一度確認しておきましょう。"
+      />
+
+      <BackupPanel
+        onImported={async () => {
+          await load()
+          toast({
+            title: 'バックアップを復元しました',
+            description: '別端末から持ち込んだデータを一覧へ反映しました。',
+          })
+        }}
       />
 
       {/* 検索・フィルタ・ソート */}
