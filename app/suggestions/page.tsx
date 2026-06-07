@@ -1,54 +1,103 @@
 'use client'
 
-import { useEffect, useMemo, useState } from 'react'
-import { Lightbulb } from 'lucide-react'
+import { useCallback, useEffect, useRef, useState } from 'react'
+import { Lightbulb, LogIn, Loader2, AlertTriangle, RefreshCw } from 'lucide-react'
 import { motion, AnimatePresence } from 'framer-motion'
 import { SuggestionCard } from '@/components/Dashboard/SuggestionCard'
 import { EmptyState } from '@/components/Common/EmptyState'
 import { VisualNovelPanel } from '@/components/Common/VisualNovelPanel'
 import { MiniCharacterGuide } from '@/components/Common/MiniCharacterGuide'
 import { ConfirmDialog } from '@/components/ui/confirm-dialog'
+import { Button } from '@/components/ui/button'
 import { useSubscriptions } from '@/hooks/useSubscriptions'
-import { generateSuggestions } from '@/lib/suggestions'
+import { analyzeSuggestionsWithLLM } from '@/lib/llmAnalysis'
+import { getSupabaseBrowserClient } from '@/lib/supabase'
 import { useToast } from '@/hooks/use-toast'
 import type { Suggestion } from '@/types'
 
+type AnalysisStatus = 'requiresSignIn' | 'waiting' | 'analyzing' | 'done' | 'error'
+
 export default function SuggestionsPage() {
-  const { subscriptions, load, remove } = useSubscriptions()
+  const { subscriptions, isLoading, load, remove } = useSubscriptions()
   const [dismissed, setDismissed] = useState<Set<string>>(new Set())
   const [cancelTarget, setCancelTarget] = useState<string | null>(null)
+  const [status, setStatus] = useState<AnalysisStatus>('analyzing')
+  const [suggestions, setSuggestions] = useState<Suggestion[]>([])
+  const [errorMessage, setErrorMessage] = useState('')
+  const [signingIn, setSigningIn] = useState(false)
+  const hasAnalyzedRef = useRef(false)
   const { toast } = useToast()
 
   useEffect(() => {
     load()
   }, [load])
 
-  const suggestions = useMemo(
-    () => generateSuggestions(subscriptions),
-    [subscriptions]
-  )
+  const runAnalysis = useCallback(async () => {
+    setStatus('analyzing')
+    const result = await analyzeSuggestionsWithLLM(subscriptions)
+
+    if ('requiresSignIn' in result) {
+      setStatus('requiresSignIn')
+      return
+    }
+    if ('pending' in result) {
+      setStatus('waiting')
+      return
+    }
+    if ('error' in result) {
+      setErrorMessage(result.error)
+      setStatus('error')
+      return
+    }
+    setSuggestions(result.suggestions)
+    setStatus('done')
+  }, [subscriptions])
+
+  useEffect(() => {
+    if (isLoading || hasAnalyzedRef.current || subscriptions.length === 0) return
+    hasAnalyzedRef.current = true
+    void runAnalysis()
+  }, [isLoading, subscriptions, runAnalysis])
+
+  async function handleSignIn() {
+    const client = getSupabaseBrowserClient()
+    if (!client) return
+    setSigningIn(true)
+    await client.auth.signInWithOAuth({
+      provider: 'google',
+      options: { redirectTo: `${window.location.origin}/suggestions` },
+    })
+    setSigningIn(false)
+  }
+
+  function handleRetry() {
+    void runAnalysis()
+  }
 
   const visible = suggestions.filter((s) => !dismissed.has(s.id))
-  const hasRisk = visible.some((s) => s.type === 'spike' || s.type === 'inactive')
-  const advisorMessage = useMemo(() => {
-    const inactive = visible.filter((s) => s.type === 'inactive').length
-    const spike = visible.filter((s) => s.type === 'spike').length
-    const savings = visible.find((s) => s.type === 'savings')?.potentialSavings ?? 0
+  const totalSavings = visible.reduce((sum, s) => sum + (s.potentialSavings ?? 0), 0)
 
-    if (inactive > 0 && spike > 0) {
-      return `未使用候補が${inactive}件、支出増加の警告が${spike}件あります。まずは解約しやすいものから触りましょう。年間では${savings.toLocaleString()}円の余地も見えています。`
+  const advisorMessage = (() => {
+    if (status === 'requiresSignIn') {
+      return 'ローカル LLM による分析には Google ログインが必要です。ログインすると、分析の進み具合を端末間で共有できます。'
     }
-    if (inactive > 0) {
-      return `眠っているサブスクが${inactive}件あります。必要だった頃の契約でも、今のあなたに必要とは限りません。静かに切れるものから減らしましょう。`
+    if (status === 'waiting') {
+      return 'Ollama の起動を待っています。準備ができたら自動的に分析を始めますので、少し時間を置いてからまた覗いてみてください。'
     }
-    if (spike > 0) {
-      return `支出が急に増えたカテゴリが${spike}件あります。一時的な出費なら問題ありません。続く支出なら、ここで止める価値があります。`
+    if (status === 'analyzing') {
+      return 'ローカル LLM があなたのサブスクを読み解いています。少しだけ待っていてくださいね。'
     }
-    if (savings > 0) {
-      return `年間${savings.toLocaleString()}円ほど、整えられる余地があります。大きな我慢より、小さな固定費を消す方が長く効きます。`
+    if (status === 'error') {
+      return '分析中に問題が起きました。もう一度試すか、しばらく時間をおいてから再度お試しください。'
     }
-    return '今のところ大きな警告はありません。ですが、定額支出は静かに増えます。月に一度だけ、私と一緒に確認しましょう。'
-  }, [visible])
+    if (visible.length === 0) {
+      return '今のところ大きな警告はありません。ですが、定額支出は静かに増えます。月に一度だけ、私と一緒に確認しましょう。'
+    }
+    if (totalSavings > 0) {
+      return `${visible.length}件の提案があります。実行できれば年間${totalSavings.toLocaleString()}円ほど見直せるかもしれません。`
+    }
+    return `${visible.length}件の提案があります。気になるものから見ていきましょう。`
+  })()
 
   function handleDismiss(id: string) {
     setDismissed((prev) => new Set([...prev, id]))
@@ -66,48 +115,116 @@ export default function SuggestionsPage() {
       <div>
         <h1 className="text-2xl font-bold tracking-tight">改善提案</h1>
         <p className="text-muted-foreground">
-          支出パターンから節約機会を提案します
+          ローカル LLM（Ollama）がサブスクの利用状況を分析し、見直しの提案をお届けします
         </p>
       </div>
 
       <VisualNovelPanel
         characterId="advisor-danger"
-        tone={hasRisk ? 'alert' : 'calm'}
+        tone={status === 'error' ? 'alert' : 'calm'}
         message={advisorMessage}
       />
 
       <MiniCharacterGuide
         characterId="advisor-danger"
         label="Risk Coach"
-        message="警告は強めに出します。まずは解約候補と増加カテゴリだけ見れば十分です。"
+        message="分析は Ollama が起動しているときだけ行えます。起動したら「今すぐ確認」を押してください。"
       />
 
-      {visible.length === 0 ? (
+      <div className="flex justify-end">
+        <Button
+          type="button"
+          variant="outline"
+          size="sm"
+          onClick={handleRetry}
+          disabled={status === 'analyzing' || status === 'requiresSignIn'}
+        >
+          <RefreshCw className="mr-1.5 h-4 w-4" />
+          今すぐ確認
+        </Button>
+      </div>
+
+      {status === 'requiresSignIn' && (
+        <div className="space-y-3">
+          <EmptyState
+            icon={LogIn}
+            title="Google ログインが必要です"
+            description="分析の保留状態をクラウドに保存して端末間で共有するため、この機能には Google ログインが必要です。"
+          />
+          <div className="flex justify-center">
+            <Button type="button" onClick={handleSignIn} disabled={signingIn}>
+              <LogIn className="mr-1.5 h-4 w-4" />
+              Google でログイン
+            </Button>
+          </div>
+        </div>
+      )}
+
+      {status === 'waiting' && (
         <EmptyState
           icon={Lightbulb}
-          title="提案はありません"
-          description="現在、改善提案はありません。サブスクを追加すると分析が始まります。"
+          title="Ollama 接続待機中"
+          description="Ollama が起動すると自動的に分析を開始します。起動したら「今すぐ確認」を押してください。"
         />
-      ) : (
-        <AnimatePresence>
-          <div className="space-y-3">
-            {visible.map((suggestion: Suggestion) => (
-              <motion.div
-                key={suggestion.id}
-                initial={{ opacity: 0, height: 'auto' }}
-                exit={{ opacity: 0, height: 0, overflow: 'hidden' }}
-                transition={{ duration: 0.2 }}
-              >
-                <SuggestionCard
-                  suggestion={suggestion}
-                  onDismiss={handleDismiss}
-                  onCancelSubscription={(subId) => setCancelTarget(subId)}
-                />
-              </motion.div>
-            ))}
-          </div>
-        </AnimatePresence>
       )}
+
+      {status === 'analyzing' && (
+        <div
+          className="anime-frame flex flex-col items-center justify-center rounded-xl px-6 py-16 text-center"
+          style={{
+            background: 'var(--anime-surface)',
+            border: '1px dashed var(--anime-card-border)',
+          }}
+        >
+          <Loader2 className="h-7 w-7 animate-spin" style={{ color: 'var(--anime-primary)' }} />
+          <h3 className="mt-4 text-lg font-semibold text-[var(--anime-text)]">
+            ローカル LLM で分析中…
+          </h3>
+          <p className="mt-2 max-w-sm text-sm text-[var(--anime-muted)]">
+            サブスクの利用状況を読み解いています。少しお待ちください。
+          </p>
+        </div>
+      )}
+
+      {status === 'error' && (
+        <div className="space-y-3">
+          <EmptyState icon={AlertTriangle} title="分析に失敗しました" description={errorMessage} />
+          <div className="flex justify-center">
+            <Button type="button" variant="outline" onClick={handleRetry}>
+              <RefreshCw className="mr-1.5 h-4 w-4" />
+              再試行
+            </Button>
+          </div>
+        </div>
+      )}
+
+      {status === 'done' &&
+        (visible.length === 0 ? (
+          <EmptyState
+            icon={Lightbulb}
+            title="提案はありません"
+            description="現在、改善提案はありません。サブスクの内容が変わったら「今すぐ確認」で再分析できます。"
+          />
+        ) : (
+          <AnimatePresence>
+            <div className="space-y-3">
+              {visible.map((suggestion: Suggestion) => (
+                <motion.div
+                  key={suggestion.id}
+                  initial={{ opacity: 0, height: 'auto' }}
+                  exit={{ opacity: 0, height: 0, overflow: 'hidden' }}
+                  transition={{ duration: 0.2 }}
+                >
+                  <SuggestionCard
+                    suggestion={suggestion}
+                    onDismiss={handleDismiss}
+                    onCancelSubscription={(subId) => setCancelTarget(subId)}
+                  />
+                </motion.div>
+              ))}
+            </div>
+          </AnimatePresence>
+        ))}
 
       <ConfirmDialog
         open={cancelTarget !== null}

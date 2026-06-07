@@ -88,12 +88,13 @@ export interface HighlightItem {
 
 export interface Suggestion {
   id: string
-  type: 'inactive' | 'spike' | 'savings'
+  type: 'inactive' | 'spike' | 'savings' | 'llm-insight'
   title: string
   description: string
   potentialSavings?: number
   subscriptionId?: string
   category?: Category
+  source?: 'rule-based' | 'llm'
 }
 
 export interface AppSettings {
