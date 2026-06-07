@@ -1,6 +1,15 @@
 import type { User } from '@supabase/supabase-js'
 import type { Category, Subscription } from '@/types'
 import { getSupabaseBrowserClient } from '@/lib/supabase'
+import { toast } from '@/hooks/use-toast'
+
+function notifySyncFailure(description: string): void {
+  toast({
+    title: 'クラウド同期に失敗しました',
+    description,
+    variant: 'destructive',
+  })
+}
 
 interface CloudSubscriptionRow {
   id: string
@@ -115,6 +124,7 @@ export async function syncSubscriptionsFromCloud(local: Subscription[]): Promise
       .from('subscriptions')
       .upsert(rowsToUpload, { onConflict: 'id' })
     if (upsertError) {
+      notifySyncFailure(upsertError.message)
       throw new Error(`Cloud sync upload failed: ${upsertError.message}`)
     }
   }
@@ -130,6 +140,7 @@ export async function uploadSubscriptionToCloud(subscription: Subscription): Pro
     .from('subscriptions')
     .upsert(toCloudRow(subscription, user.id), { onConflict: 'id' })
   if (error) {
+    notifySyncFailure(error.message)
     throw new Error(`Cloud upload failed: ${error.message}`)
   }
 }
@@ -145,6 +156,7 @@ export async function deleteSubscriptionFromCloud(id: string): Promise<void> {
     .eq('id', id)
     .eq('user_id', user.id)
   if (error) {
+    notifySyncFailure(error.message)
     throw new Error(`Cloud delete failed: ${error.message}`)
   }
 }
