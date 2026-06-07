@@ -42,11 +42,21 @@ function parseSuggestion(raw: unknown): Suggestion | null {
   return suggestion
 }
 
+function toCandidateArray(raw: unknown): unknown[] | null {
+  if (Array.isArray(raw)) return raw
+  // モデルによっては「提案が1件だけ」の場合に配列ではなく単一オブジェクトを
+  // 返すことがある（プロンプトで配列指定しても厳密に従わないモデルがあるため）。
+  // 単一オブジェクトはそのまま1件の提案として扱えるよう、配列に包んで救済する。
+  if (isPlainObject(raw)) return [raw]
+  return null
+}
+
 export function parseLlmAnalysisResponse(raw: unknown): Suggestion[] | null {
-  if (!Array.isArray(raw)) return null
+  const candidates = toCandidateArray(raw)
+  if (!candidates) return null
 
   const suggestions: Suggestion[] = []
-  for (const item of raw) {
+  for (const item of candidates) {
     const suggestion = parseSuggestion(item)
     if (suggestion) suggestions.push(suggestion)
     if (suggestions.length >= MAX_SUGGESTIONS) break
