@@ -12,3 +12,6 @@ yarn-error.log*
 pnpm-debug.log*
 out/
 *.local
+/test-results/
+/playwright-report/
+/blob-report/

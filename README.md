@@ -50,6 +50,48 @@ npm run build
 
 開発サーバーは通常 `http://localhost:3000` で起動します。
 
+## ビジュアルリグレッション (Playwright)
+
+主要 5 画面（ダッシュボード / サブスク管理 / CSV 取込 / レシート読取 / 実績）の見た目を、Playwright のスクリーンショット比較で継続的に検証します。
+テストは `npm run build && npm run start` で本番ビルドを起動し、オンボーディングやログインボーナス演出をスキップした状態でキャプチャします。
+
+### ローカルでの実行
+
+初回のみブラウザ本体を取得します。
+
+```bash
+npx playwright install chromium
+```
+
+比較を実行します（差分があれば `playwright-report/` に結果が出力されます）。
+
+```bash
+npm run e2e
+```
+
+レポートを開いて差分を確認します。
+
+```bash
+npm run e2e:report
+```
+
+UI を意図的に変更してベースラインを更新する場合は次を実行します。
+
+```bash
+npm run e2e:update
+```
+
+更新後のスクリーンショットは `e2e/__screenshots__/` 配下にコミットします。
+
+### CI での実行
+
+```bash
+npx playwright install --with-deps chromium
+npm run e2e
+```
+
+`playwright.config.ts` の `webServer` がビルド済みアプリを `http://127.0.0.1:3100` で自動起動するため、別途サーバーを立てる必要はありません。
+
 ## 一般公開
 
 Next.js 構成のため、Vercel への公開を推奨します。
