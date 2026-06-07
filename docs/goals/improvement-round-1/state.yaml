@@ -1,0 +1,245 @@
+# GoalBuddy v2 state.yaml
+# Board truth lives here. goal.md is the editable charter; notes/ holds long receipts only.
+
+version: 2
+
+goal:
+  title: "改善候補ラウンド1 — リファクタ・テストカバレッジ・UI確認体制"
+  slug: "improvement-round-1"
+  kind: existing_plan
+  tranche: "goal.md の3項目（PresetPicker分離・対象6ファイルへのテスト追加・Playwrightビジュアルリグレッション基盤）を順に検証つき実装し、最終監査で全outcome達成を確認するまで継続する"
+  status: active
+  intake:
+    original_request: "CLAUDE.md「現在の改善候補」3項目に対応したい"
+    interpreted_outcome: "SubscriptionFormからPresetPickerを分離し、対象6ファイルにテストを追加してカバレッジ80%を満たし、Playwrightでビジュアルリグレッションを自動化する"
+    input_shape: existing_plan
+    audience: "haon0612kcalb@gmail.com（個人開発者・本アプリのオーナー）"
+    authority: approved
+    proof_type: test
+    completion_proof: "PresetPicker分離後も既存テスト通過／対象6ファイルのテストが追加されカバレッジ全体80%以上／npx playwright test がローカルで通り主要5画面のベースラインが存在／npm run build と tsc --noEmit がエラーなし"
+    likely_misfire: "リファクタ(T002)とビジュアルリグレッション(T005)の順序を誤り、ベースライン作成後にUI差分が大量発生して誤検知の山になる。T005のベースラインキャプチャは他タスク完了後に行う。"
+    blind_spots_considered:
+      - "PresetPicker分離は構造変更のみで見た目・挙動を変えないことを既存テストで担保する必要がある"
+      - "Playwright導入はCI実行手順も含めて整備しないと形骸化する"
+      - "対象6ファイルは依存関係が薄いため、書き込み範囲が重ならない限りWorkerタスクを直列に進めても並行と同等の速度で進められる"
+    existing_plan_facts:
+      - "goal.md Tranche Strategy: T001(PM検証) → T002(PresetPicker分離) → T003(テスト追加バッチ①: CategoryReviewPanel, ReceiptUpload) → T004(テスト追加バッチ②: useDragOrder, customRules, export, subscriptionPresets) → T005(Playwright導入、ベースラインは最後) → T999(最終監査)"
+      - "Constraints: TypeScript strict / any禁止、immutableパターン、既存UIへの影響ゼロ、TDD、カバレッジ80%以上、Conventional Commits"
+      - "Completion Proof は goal.md に明記済み（上記 completion_proof と同一）"
+
+rules:
+  pm_owns_state: true
+  one_active_task: true
+  max_write_workers: 1
+  no_implementation_without_worker_or_pm_task: true
+  no_completion_without_judge_or_pm_audit: true
+  planning_is_not_completion: true
+  queued_required_worker_blocks_completion: true
+  continuous_until_full_outcome: true
+  missing_input_or_credentials_do_not_stop_goal: true
+  preserve_and_validate_existing_plan: true
+  intake_misfire_must_be_audited: true
+  slice_policy:
+    max_consecutive_tiny_tasks: 2
+    prefer_vertical_slices: true
+    judge_picks_largest_safe_slice: true
+    worker_completes_whole_slice: true
+
+agents:
+  scout: bundled_not_installed
+  worker: bundled_not_installed
+  judge: bundled_not_installed
+
+visual_board:
+  selected: none
+  local:
+    status: not_requested
+    url: null
+    command: "npx goalbuddy board docs/goals/improvement-round-1"
+  github_projects:
+    status: not_requested
+    url: null
+    command: "npx goalbuddy extend github-projects"
+    missing: []
+
+active_task: T004
+
+tasks:
+  # ── Phase 0: Plan Validation ──────────────────────────────────────────────
+  - id: T001
+    type: pm
+    assignee: PM
+    status: done
+    reasoning_hint: medium
+    objective: "goal.md の既存計画を検証する: 対象ファイルの依存関係、フェーズ分割の妥当性、Workerタスクの書き込み範囲が衝突しないことを確認し、T002着手の可否を判断する"
+    inputs:
+      - "docs/goals/improvement-round-1/goal.md"
+      - "components/Forms/SubscriptionForm.tsx"
+      - "components/Forms/CategoryReviewPanel.tsx"
+      - "components/Forms/ReceiptUpload.tsx"
+      - "hooks/useDragOrder.ts"
+      - "lib/customRules.ts"
+      - "lib/export.ts"
+      - "lib/subscriptionPresets.ts"
+      - "tests/ ディレクトリの既存テスト一覧"
+    constraints:
+      - "対象ファイルの現状（行数、責務、既存テスト有無）を確認する"
+      - "T002〜T004 の allowed_files が衝突しないことを確認する"
+      - "Playwright導入(T005)に必要な追加依存とCI実行手順の見通しを立てる"
+    expected_output:
+      - "ギャップ分析: goal.md の計画 vs 実コード"
+      - "T002〜T005 の allowed_files / verify / stop_if の確定版"
+      - "着手可否の判定: proceed to T002 もしくは計画修正が必要"
+    receipt:
+      result: done
+      summary: "既存計画を検証。SubscriptionForm(554行)はプリセット選択ロジックが大きな比重を占めており分離妥当。CategoryReviewPanel(315行)/ReceiptUpload(230行)/useDragOrder(51行)/customRules(31行)/export(34行)/subscriptionPresets(405行)はすべてテスト未整備を確認。T002〜T004のallowed_filesは重複なし。Playwrightは未導入(package.jsonに依存なし)、新規導入が必要。"
+      gaps:
+        - "CategoryReviewPanel は components/Common/ ではなく components/Forms/ に存在（goal.md記載のパスを修正）"
+        - "Playwright関連の依存・設定ファイルは存在しない — T005で新規構築"
+      verdict: "proceed to T002"
+
+  # ── Phase 1: PresetPicker分離 ─────────────────────────────────────────────
+  - id: T002
+    type: worker
+    assignee: Worker
+    status: done
+    reasoning_hint: default
+    objective: "SubscriptionFormからプリセット選択ロジック（検索・カテゴリ絞り込み・選択中表示）をPresetPickerコンポーネントとして分離する。見た目・挙動は変えない構造変更のみ。"
+    allowed_files:
+      - "components/Forms/SubscriptionForm.tsx"
+      - "components/Forms/PresetPicker.tsx"
+      - "tests/components/SubscriptionForm.test.tsx"
+      - "tests/components/PresetPicker.test.tsx"
+    verify:
+      - "tsc --noEmit が通る"
+      - "既存の SubscriptionForm.test.tsx が全てパスする（回帰なし）"
+      - "PresetPicker 単体テストが追加されカバレッジ80%以上"
+      - "npm run build が成功する"
+    stop_if:
+      - "分離によって既存のフォーム挙動（プリセット選択→フォーム反映）が変わってしまう"
+      - "SubscriptionForm.tsx の既存テストが落ちる"
+      - "型エラーが解消できない"
+    receipt:
+      result: done
+      changed_files:
+        - components/Forms/PresetPicker.tsx
+        - components/Forms/SubscriptionForm.tsx
+        - tests/components/PresetPicker.test.tsx
+      commands:
+        - cmd: "npx tsc --noEmit"
+          status: pass
+        - cmd: "npx jest tests/components/SubscriptionForm.test.tsx"
+          status: "pass (11/11, 既存回帰なし)"
+        - cmd: "npx jest tests/components/PresetPicker.test.tsx --coverage"
+          status: "pass (8/8, statements/lines 100%, branches 91.3%)"
+        - cmd: "npm run build"
+          status: pass
+      summary: "プリセット選択ロジック（検索・カテゴリ絞り込み・サービス/プラン選択・選択サマリー表示・修正導線）をPresetPickerへ分離。選択状態(PresetSelection)と編集要求はコールバック(onSelectionChange/onEditingChange)で親に伝播し、見た目・挙動は完全に維持。SubscriptionFormは554行から大幅に縮小し責務が明確化。"
+
+  # ── Phase 2: テスト追加バッチ① ────────────────────────────────────────────
+  - id: T003
+    type: worker
+    assignee: Worker
+    status: done
+    reasoning_hint: default
+    objective: "CategoryReviewPanel と ReceiptUpload にテストを追加し、各カバレッジ80%以上を達成する"
+    allowed_files:
+      - "tests/components/CategoryReviewPanel.test.tsx"
+      - "tests/components/ReceiptUpload.test.tsx"
+    verify:
+      - "tsc --noEmit が通る"
+      - "npm run test:coverage で CategoryReviewPanel と ReceiptUpload が各80%以上"
+      - "npm test が全てパスする"
+    stop_if:
+      - "OCR(Tesseract)のモックが安定せずテストがflakyになる"
+      - "対象コンポーネントの責務が大きすぎてテストが書けない（その場合は分割提案をPMに報告）"
+    receipt:
+      result: done
+      changed_files:
+        - tests/components/CategoryReviewPanel.test.tsx
+        - tests/components/ReceiptUpload.test.tsx
+      commands:
+        - cmd: "npx tsc --noEmit"
+          status: pass
+        - cmd: "npx jest tests/components/CategoryReviewPanel.test.tsx tests/components/ReceiptUpload.test.tsx --coverage --collectCoverageFrom=components/Forms/CategoryReviewPanel.tsx --collectCoverageFrom=components/Forms/ReceiptUpload.tsx"
+          status: "pass (16/16); CategoryReviewPanel stmts 98.33% / branches 90.47% / funcs 100% / lines 100%; ReceiptUpload stmts 98.33% / branches 87.09% / funcs 93.75% / lines 98.11%"
+        - cmd: "npx jest"
+          status: "pass (211/211, 既存回帰なし)"
+      summary: "CategoryReviewPanel(8テスト)とReceiptUpload(8テスト)のテストを追加。カテゴリ集計表示、カスタムキーワードルールのCRUD・再分類、行ごとのカテゴリ編集、確認/戻る導線、OCR成功/失敗/例外時の挙動、ドラッグ&ドロップ取込、フォーム編集→送信を網羅。jsdomがRadix Selectのpointer-capture/scrollIntoView APIを実装していないため、各テストファイル内でhasPointerCapture/releasePointerCapture/scrollIntoViewのポリフィルをbeforeAllで設定（許可ファイル範囲内、jest.setup.jsは変更不要）。"
+      notes:
+        - "jest.config.js の collectCoverageFrom は ReceiptUpload.tsx を除外している（コメント付きで意図的）。グローバルカバレッジには算入されないが、ファイル単体のカバレッジ計測では基準を満たすことを上記コマンドで確認済み。除外設定自体の見直しが必要であればT999監査時にPM/Judgeで判断。"
+
+  # ── Phase 3: テスト追加バッチ② ────────────────────────────────────────────
+  - id: T004
+    type: worker
+    assignee: Worker
+    status: active
+    reasoning_hint: default
+    objective: "useDragOrder, customRules, export, subscriptionPresets にテストを追加し、各カバレッジ80%以上を達成する"
+    allowed_files:
+      - "tests/hooks/useDragOrder.test.ts"
+      - "tests/lib/customRules.test.ts"
+      - "tests/lib/export.test.ts"
+      - "tests/lib/subscriptionPresets.test.ts"
+    verify:
+      - "tsc --noEmit が通る"
+      - "npm run test:coverage で4ファイルすべてが各80%以上"
+      - "npm test が全てパスする"
+    stop_if:
+      - "useDragOrder のDnDイベントモックが不安定でテストがflakyになる"
+      - "subscriptionPresets のデータ件数が多くテストが冗長になりすぎる場合は代表サンプルへの絞り込みをPMに報告"
+    receipt: null
+
+  # ── Phase 4: Playwrightビジュアルリグレッション基盤 ──────────────────────
+  - id: T005
+    type: worker
+    assignee: Worker
+    status: queued
+    reasoning_hint: default
+    objective: "Playwrightを導入し、主要5画面（ダッシュボード/サブスク管理/インポート/レシート/実績）のビジュアルリグレッション基盤を構築する。ベースラインは T002〜T004 完了後の安定した状態でキャプチャする。"
+    allowed_files:
+      - "playwright.config.ts"
+      - "e2e/**"
+      - "package.json"
+      - "package-lock.json"
+      - ".gitignore"
+      - "README.md"
+    verify:
+      - "npx playwright test がローカルで通る"
+      - "主要5画面のベースラインスクリーンショットが e2e/ 配下に存在する"
+      - "READMEにPlaywright実行手順（ローカル/CI）が記載されている"
+    stop_if:
+      - "T002〜T004が未完了の状態でベースラインをキャプチャしようとしている（先に完了確認すること）"
+      - "Playwrightのブラウザインストールがネットワーク制約で失敗する"
+    receipt: null
+
+  # ── Final Audit ──────────────────────────────────────────────────────────
+  - id: T999
+    type: judge
+    assignee: Judge
+    status: queued
+    reasoning_hint: high
+    objective: "改善候補ラウンド1の全outcome達成を監査する: PresetPicker分離・対象6ファイルのテスト追加・Playwrightビジュアルリグレッション基盤が揃い、カバレッジ80%・ビルド・型チェックが全てパスすることを確認する"
+    inputs:
+      - "T002〜T005 の Worker receipts"
+      - "npm run test:coverage 出力"
+      - "npm run build 出力"
+      - "tsc --noEmit 出力"
+      - "npx playwright test 出力"
+    expected_output:
+      - "完了チェックリスト: PresetPicker分離 / テスト追加(6ファイル) / Playwright基盤 — done/not done"
+      - "カバレッジレポート: ≥80%"
+      - "ビルド: pass/fail"
+      - "full_outcome_complete: true or false"
+      - "未完了の場合は次フェーズの推奨"
+    constraints:
+      - "実装が完了していない場合は complete と判定しない"
+      - "Worker タスクが queued/active のまま goal を done にしない"
+    receipt: null
+
+checks:
+  dirty_fingerprint: unknown
+  last_verification:
+    result: unknown
+    task: null
+    commands: []
