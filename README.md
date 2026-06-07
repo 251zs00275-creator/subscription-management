@@ -50,6 +50,48 @@ npm run build
 
 開発サーバーは通常 `http://localhost:3000` で起動します。
 
+## ビジュアルリグレッション (Playwright)
+
+主要 5 画面（ダッシュボード / サブスク管理 / CSV 取込 / レシート読取 / 実績）の見た目を、Playwright のスクリーンショット比較で継続的に検証します。
+テストは `npm run build && npm run start` で本番ビルドを起動し、オンボーディングやログインボーナス演出をスキップした状態でキャプチャします。
+
+### ローカルでの実行
+
+初回のみブラウザ本体を取得します。
+
+```bash
+npx playwright install chromium
+```
+
+比較を実行します（差分があれば `playwright-report/` に結果が出力されます）。
+
+```bash
+npm run e2e
+```
+
+レポートを開いて差分を確認します。
+
+```bash
+npm run e2e:report
+```
+
+UI を意図的に変更してベースラインを更新する場合は次を実行します。
+
+```bash
+npm run e2e:update
+```
+
+更新後のスクリーンショットは `e2e/__screenshots__/` 配下にコミットします。
+
+### CI での実行
+
+```bash
+npx playwright install --with-deps chromium
+npm run e2e
+```
+
+`playwright.config.ts` の `webServer` がビルド済みアプリを `http://127.0.0.1:3100` で自動起動するため、別途サーバーを立てる必要はありません。
+
 ## 一般公開
 
 Next.js 構成のため、Vercel への公開を推奨します。
@@ -82,13 +124,32 @@ Supabase の環境変数を設定し Google ログインすると、サブスク
 
 ## Supabase 同期
 
-1. Supabase プロジェクトを作成する
+### セットアップ手順
+
+1. [Supabase](https://supabase.com/) でプロジェクトを作成する
 2. `.env.example` を参考に `.env.local` へ `NEXT_PUBLIC_SUPABASE_URL` と `NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY` を設定する
-3. Supabase SQL Editor で `docs/supabase-subscriptions.sql` を実行する
+3. Supabase の SQL Editor で以下の2つを実行する
+   - `docs/supabase-subscriptions.sql`（サブスク一覧の同期用テーブル）
+   - `docs/supabase-llm-tasks.sql`（Ollama によるローカル LLM 分析機能で使う「保留中タスク」テーブル。本体機能を使わない場合でも、将来の Ollama 機能のために合わせて実行しておくことを推奨）
 4. Supabase Auth で Google provider を有効にし、Google OAuth 側へ Supabase callback URL を登録する
 5. Supabase Auth の Redirect URLs に公開 URL とローカル URL の `/subscriptions` 戻り先を追加する
 
 初期同期はサブスク一覧のみです。同じ ID のデータは `updatedAt` が新しい方を採用し、同期後の削除は tombstone で他端末へ伝えます。
+
+### 動作確認チェックリスト
+
+- [ ] 未サインイン時、ヘッダーの同期ボタンに「Google」と表示され、クリックで Google のサインイン画面に遷移する
+- [ ] サインイン後、ヘッダーの同期ボタンが「同期中」表示に変わり、クリックでサインアウトできる
+- [ ] 別端末・別ブラウザで同じ Google アカウントにサインインすると、サブスク一覧が同期される
+- [ ] 一方の端末でサブスクを削除すると、もう一方の端末でも反映される（tombstone 同期）
+- [ ] 別の Google アカウントでサインインした場合、他ユーザーのサブスクが見えない（RLS による分離の確認）
+- [ ] ネットワーク切断時など同期に失敗する状況で、エラーを知らせるトースト通知が表示される
+
+### 設計上の注意点（変更しない理由）
+
+- **`middleware.ts` は追加していません**: このアプリは100%クライアントコンポーネントで構成されており、`getSupabaseBrowserClient()` はブラウザ専用クライアントです。`@supabase/ssr` のミドルウェアによるセッションリフレッシュは「サーバーコンポーネント/ルートハンドラがCookieからセッションを読む」ケースのための機構ですが、このアプリはその構成を取らないため不要です（クライアント SDK が内部でトークンリフレッシュを処理します）。認証なし・ブラウザ内保存を基本とするこのアプリのアーキテクチャ方針とも整合します。
+- **`.env.example` の `NEXT_PUBLIC_*` は意図的にブラウザへ公開しています**: Supabase の publishable key（旧 anon key）はブラウザに公開される前提で設計されたキーであり、実際のアクセス制御は Row Level Security（`docs/supabase-subscriptions.sql` / `docs/supabase-llm-tasks.sql` の `user_id` 隔離ポリシー）がデータベース側で担保します。`NEXT_PUBLIC_*` は Next.js でブラウザに値を渡すための正規の方法であり、漏えいではありません。
+- **`llm_analysis_tasks` テーブルについて**: 現時点ではこのアプリ内で読み書きする機能はまだありませんが、今後追加予定の「Ollama によるローカル LLM 分析」機能が、分析の保留状態を複数端末間で共有するために使用します。先に SQL を実行しておくと、その機能を有効にした際にすぐ動作します。
 
 ## 主要ディレクトリ
 
