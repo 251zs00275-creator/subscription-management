@@ -27,11 +27,30 @@ describe('parseLlmAnalysisResponse', () => {
     expect(result?.[0].id).toEqual(expect.any(String))
   })
 
-  it('配列でないルートは null を返す', () => {
-    expect(parseLlmAnalysisResponse({ title: 'x', description: 'y' })).toBeNull()
+  it('配列でもオブジェクトでもないルートは null を返す', () => {
     expect(parseLlmAnalysisResponse('not an array')).toBeNull()
     expect(parseLlmAnalysisResponse(null)).toBeNull()
     expect(parseLlmAnalysisResponse(undefined)).toBeNull()
+    expect(parseLlmAnalysisResponse(42)).toBeNull()
+  })
+
+  it('配列ではなく単一オブジェクトで返ってきた場合は1件の提案として救済する', () => {
+    // モデルによっては「提案が1件のみ」のとき、プロンプトの指示に反して
+    // 配列ではなく単一オブジェクトを返すことがある（実機で確認済み）。
+    const raw = buildRawSuggestion({ title: '単一オブジェクトの提案' })
+
+    const result = parseLlmAnalysisResponse(raw)
+
+    expect(result).toHaveLength(1)
+    expect(result?.[0]).toMatchObject({
+      title: '単一オブジェクトの提案',
+      type: 'llm-insight',
+      source: 'llm',
+    })
+  })
+
+  it('単一オブジェクトでも title・description が不正なら空配列を返す', () => {
+    expect(parseLlmAnalysisResponse({ title: 123, description: 'y' })).toEqual([])
   })
 
   it('title または description が文字列でない要素は除外する', () => {

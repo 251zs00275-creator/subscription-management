@@ -34,6 +34,12 @@ describe('requestOllamaCompletion', () => {
         body: expect.stringContaining('"format":"json"'),
       })
     )
+    expect(global.fetch).toHaveBeenCalledWith(
+      expect.anything(),
+      expect.objectContaining({
+        body: expect.stringContaining('"think":false'),
+      })
+    )
   })
 
   it('接続できない場合は ok: false, reason: unreachable を返す', async () => {
