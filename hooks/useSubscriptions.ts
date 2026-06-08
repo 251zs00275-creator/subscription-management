@@ -3,11 +3,13 @@ import { db } from '@/lib/db'
 import type { Subscription, SubscriptionFormData } from '@/types'
 import { useGameStats } from '@/hooks/useGameStats'
 import { fireConfetti } from '@/lib/confetti'
+import { syncSubscriptionsFromCloud } from '@/lib/subscriptionCloudSync'
 import {
-  deleteSubscriptionFromCloud,
-  syncSubscriptionsFromCloud,
-  uploadSubscriptionToCloud,
-} from '@/lib/subscriptionCloudSync'
+  enqueueDelete,
+  enqueueUpsert,
+  flushQueue,
+  getPendingDeleteIds,
+} from '@/lib/subscriptionSyncQueue'
 
 function generateId(): string {
   return crypto.randomUUID()
@@ -40,8 +42,9 @@ export const useSubscriptions = create<SubscriptionStore>((set, get) => ({
   load: async () => {
     set({ isLoading: true, error: null })
     try {
+      await flushQueue()
       const localSubscriptions = await db.getAll()
-      const subscriptions = await syncSubscriptionsFromCloud(localSubscriptions)
+      const subscriptions = await syncSubscriptionsFromCloud(localSubscriptions, getPendingDeleteIds())
       if (subscriptions !== localSubscriptions) {
         await db.replaceAll(subscriptions)
       }
@@ -64,7 +67,8 @@ export const useSubscriptions = create<SubscriptionStore>((set, get) => ({
     }
     try {
       await db.create(subscription)
-      void uploadSubscriptionToCloud(subscription)
+      enqueueUpsert(subscription)
+      void flushQueue()
       const newSubs = [...get().subscriptions, subscription]
       set({ subscriptions: newSubs })
       const game = useGameStats.getState()
@@ -88,7 +92,8 @@ export const useSubscriptions = create<SubscriptionStore>((set, get) => ({
     }
     try {
       await db.update(updated)
-      void uploadSubscriptionToCloud(updated)
+      enqueueUpsert(updated)
+      void flushQueue()
       set((state) => ({
         subscriptions: state.subscriptions.map((s) =>
           s.id === id ? updated : s
@@ -106,7 +111,8 @@ export const useSubscriptions = create<SubscriptionStore>((set, get) => ({
     set({ error: null })
     try {
       await db.delete(id)
-      void deleteSubscriptionFromCloud(id)
+      enqueueDelete(id)
+      void flushQueue()
       const remaining = get().subscriptions.filter((s) => s.id !== id)
       set({ subscriptions: remaining })
       const game = useGameStats.getState()
@@ -129,7 +135,8 @@ export const useSubscriptions = create<SubscriptionStore>((set, get) => ({
     }
     try {
       await db.update(updated)
-      void uploadSubscriptionToCloud(updated)
+      enqueueUpsert(updated)
+      void flushQueue()
       const newSubs = get().subscriptions.map((s) => (s.id === id ? updated : s))
       set({ subscriptions: newSubs })
       const game = useGameStats.getState()
@@ -152,8 +159,9 @@ export const useSubscriptions = create<SubscriptionStore>((set, get) => ({
     try {
       await db.bulkCreate(newSubs)
       newSubs.forEach((subscription) => {
-        void uploadSubscriptionToCloud(subscription)
+        enqueueUpsert(subscription)
       })
+      void flushQueue()
       const allSubs = [...get().subscriptions, ...newSubs]
       set({ subscriptions: allSubs, isLoading: false })
       const game = useGameStats.getState()

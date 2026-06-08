@@ -11,11 +11,14 @@ import { ConfirmDialog } from '@/components/ui/confirm-dialog'
 import { Button } from '@/components/ui/button'
 import { useSubscriptions } from '@/hooks/useSubscriptions'
 import { analyzeSuggestionsWithLLM } from '@/lib/llmAnalysis'
+import { getPendingTask } from '@/lib/llmAnalysisQueue'
 import { getSupabaseBrowserClient } from '@/lib/supabase'
 import { useToast } from '@/hooks/use-toast'
 import type { Suggestion } from '@/types'
 
 type AnalysisStatus = 'requiresSignIn' | 'waiting' | 'analyzing' | 'done' | 'error'
+
+const RETRY_INTERVAL_MS = 30000
 
 export default function SuggestionsPage() {
   const { subscriptions, isLoading, load, remove } = useSubscriptions()
@@ -56,8 +59,30 @@ export default function SuggestionsPage() {
   useEffect(() => {
     if (isLoading || hasAnalyzedRef.current || subscriptions.length === 0) return
     hasAnalyzedRef.current = true
-    void runAnalysis()
+    let cancelled = false
+    void (async () => {
+      // 端末間で共有された保留タスクがあれば、新規分析を走らせず待機状態から再開する
+      const pending = await getPendingTask()
+      if (cancelled) return
+      if (pending) {
+        setStatus('waiting')
+        return
+      }
+      await runAnalysis()
+    })()
+    return () => {
+      cancelled = true
+    }
   }, [isLoading, subscriptions, runAnalysis])
+
+  // 待機中は Ollama の起動を見越して定期的に分析を再試行する
+  useEffect(() => {
+    if (status !== 'waiting') return
+    const timer = setInterval(() => {
+      void runAnalysis()
+    }, RETRY_INTERVAL_MS)
+    return () => clearInterval(timer)
+  }, [status, runAnalysis])
 
   async function handleSignIn() {
     const client = getSupabaseBrowserClient()

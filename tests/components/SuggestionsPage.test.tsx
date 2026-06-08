@@ -1,9 +1,10 @@
 import React from 'react'
-import { render, screen, waitFor } from '@testing-library/react'
+import { act, render, screen, waitFor } from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
 import SuggestionsPage from '@/app/suggestions/page'
 import { useSubscriptions } from '@/hooks/useSubscriptions'
 import { analyzeSuggestionsWithLLM } from '@/lib/llmAnalysis'
+import { getPendingTask } from '@/lib/llmAnalysisQueue'
 import { getSupabaseBrowserClient } from '@/lib/supabase'
 import type { Subscription } from '@/types'
 
@@ -15,12 +16,17 @@ jest.mock('@/lib/llmAnalysis', () => ({
   analyzeSuggestionsWithLLM: jest.fn(),
 }))
 
+jest.mock('@/lib/llmAnalysisQueue', () => ({
+  getPendingTask: jest.fn(),
+}))
+
 jest.mock('@/lib/supabase', () => ({
   getSupabaseBrowserClient: jest.fn(),
 }))
 
 const mockUseSubscriptions = useSubscriptions as jest.MockedFunction<typeof useSubscriptions>
 const mockAnalyze = analyzeSuggestionsWithLLM as jest.MockedFunction<typeof analyzeSuggestionsWithLLM>
+const mockGetPendingTask = getPendingTask as jest.MockedFunction<typeof getPendingTask>
 const mockGetSupabaseBrowserClient = getSupabaseBrowserClient as jest.MockedFunction<
   typeof getSupabaseBrowserClient
 >
@@ -57,6 +63,7 @@ beforeEach(() => {
   mockGetSupabaseBrowserClient.mockReturnValue({
     auth: { signInWithOAuth: signInWithOAuthMock },
   } as unknown as ReturnType<typeof getSupabaseBrowserClient>)
+  mockGetPendingTask.mockResolvedValue(null)
 })
 
 describe('SuggestionsPage', () => {
@@ -180,5 +187,61 @@ describe('SuggestionsPage', () => {
 
     expect(await screen.findByText('保留タスクから再開した提案')).toBeInTheDocument()
     expect(mockAnalyze).toHaveBeenCalledTimes(2)
+  })
+
+  it('保留タスクが残っている場合は新規分析を走らせず待機状態から再開する', async () => {
+    mockStore()
+    mockGetPendingTask.mockResolvedValue([buildSubscription()])
+    mockAnalyze.mockResolvedValue({
+      suggestions: [
+        {
+          id: 'llm-4',
+          type: 'llm-insight',
+          title: '保留タスク再開後の提案',
+          description: '前回の続きから取得した内容です。',
+          source: 'llm',
+        },
+      ],
+      source: 'llm',
+    })
+
+    render(<SuggestionsPage />)
+
+    expect(await screen.findByText('Ollama 接続待機中')).toBeInTheDocument()
+    expect(mockAnalyze).not.toHaveBeenCalled()
+  })
+
+  it('待機中は一定間隔で自動的に再分析を試行し、成功すると提案を表示する', async () => {
+    jest.useFakeTimers({ legacyFakeTimers: false })
+    try {
+      mockStore()
+      mockAnalyze.mockResolvedValueOnce({ pending: true })
+      mockAnalyze.mockResolvedValueOnce({
+        suggestions: [
+          {
+            id: 'llm-5',
+            type: 'llm-insight',
+            title: '自動再試行で取得した提案',
+            description: 'Ollama起動後に自動的に再取得しました。',
+            source: 'llm',
+          },
+        ],
+        source: 'llm',
+      })
+
+      render(<SuggestionsPage />)
+
+      await waitFor(() => expect(mockAnalyze).toHaveBeenCalledTimes(1))
+      expect(await screen.findByText('Ollama 接続待機中')).toBeInTheDocument()
+
+      await act(async () => {
+        jest.advanceTimersByTime(30000)
+      })
+
+      await waitFor(() => expect(mockAnalyze).toHaveBeenCalledTimes(2))
+      expect(await screen.findByText('自動再試行で取得した提案')).toBeInTheDocument()
+    } finally {
+      jest.useRealTimers()
+    }
   })
 })

@@ -18,8 +18,22 @@ jest.mock('@/lib/subscriptionCloudSync', () => ({
   uploadSubscriptionToCloud: jest.fn().mockResolvedValue(undefined),
 }))
 
+jest.mock('@/lib/subscriptionSyncQueue', () => ({
+  enqueueUpsert: jest.fn(),
+  enqueueDelete: jest.fn(),
+  flushQueue: jest.fn().mockResolvedValue(undefined),
+  getPendingDeleteIds: jest.fn().mockReturnValue(new Set()),
+}))
+
 import { db } from '@/lib/db'
+import { syncSubscriptionsFromCloud } from '@/lib/subscriptionCloudSync'
+import { enqueueDelete, enqueueUpsert, flushQueue, getPendingDeleteIds } from '@/lib/subscriptionSyncQueue'
 const mockDb = db as jest.Mocked<typeof db>
+const mockSyncFromCloud = syncSubscriptionsFromCloud as jest.MockedFunction<typeof syncSubscriptionsFromCloud>
+const mockEnqueueUpsert = enqueueUpsert as jest.MockedFunction<typeof enqueueUpsert>
+const mockEnqueueDelete = enqueueDelete as jest.MockedFunction<typeof enqueueDelete>
+const mockFlushQueue = flushQueue as jest.MockedFunction<typeof flushQueue>
+const mockGetPendingDeleteIds = getPendingDeleteIds as jest.MockedFunction<typeof getPendingDeleteIds>
 
 function makeFormData() {
   return {
@@ -162,5 +176,57 @@ describe('useSubscriptions', () => {
     const { result } = renderHook(() => useSubscriptions())
     await act(async () => { await result.current.bulkImport([makeFormData()]) })
     expect(result.current.error).toBe('インポートに失敗しました')
+  })
+
+  describe('クラウド同期キュー連携', () => {
+    beforeEach(() => {
+      mockDb.create.mockResolvedValue('sub_new')
+      mockDb.update.mockResolvedValue(undefined)
+      mockDb.delete.mockResolvedValue(undefined)
+    })
+
+    it('add: クラウド送信が失敗してもローカル状態は更新され、操作がキューに積まれる', async () => {
+      const { result } = renderHook(() => useSubscriptions())
+      await act(async () => { await result.current.add(makeFormData()) })
+
+      expect(result.current.subscriptions).toHaveLength(1)
+      expect(result.current.error).toBeNull()
+      expect(mockEnqueueUpsert).toHaveBeenCalledTimes(1)
+      expect(mockFlushQueue).toHaveBeenCalled()
+    })
+
+    it('update: クラウド送信失敗時もローカル状態は更新され、操作がキューに積まれる', async () => {
+      const sub = { id: 'sub_1', name: 'Netflix', amount: 1490, category: 'サブスク' as const, nextPaymentDate: '2024-05-01', memo: '', isActive: true, createdAt: '2024-01-01T00:00:00.000Z', updatedAt: '2024-01-01T00:00:00.000Z' }
+      useSubscriptions.setState({ subscriptions: [sub] })
+      const { result } = renderHook(() => useSubscriptions())
+      await act(async () => { await result.current.update('sub_1', { ...makeFormData(), name: 'Updated Netflix' }) })
+
+      expect(result.current.subscriptions[0].name).toBe('Updated Netflix')
+      expect(mockEnqueueUpsert).toHaveBeenCalledWith(expect.objectContaining({ id: 'sub_1', name: 'Updated Netflix' }))
+      expect(mockFlushQueue).toHaveBeenCalled()
+    })
+
+    it('remove: ローカル削除は完了し、クラウド削除操作がキューに積まれる', async () => {
+      const sub = { id: 'sub_1', name: 'Netflix', amount: 1490, category: 'サブスク' as const, nextPaymentDate: '2024-05-01', memo: '', isActive: true, createdAt: '2024-01-01T00:00:00.000Z', updatedAt: '2024-01-01T00:00:00.000Z' }
+      useSubscriptions.setState({ subscriptions: [sub] })
+      const { result } = renderHook(() => useSubscriptions())
+      await act(async () => { await result.current.remove('sub_1') })
+
+      expect(result.current.subscriptions).toHaveLength(0)
+      expect(mockEnqueueDelete).toHaveBeenCalledWith('sub_1')
+      expect(mockFlushQueue).toHaveBeenCalled()
+    })
+
+    it('load: 同期前にキューをフラッシュし、保留中の削除IDをマージ処理に渡す', async () => {
+      const pendingIds = new Set(['sub_2'])
+      mockGetPendingDeleteIds.mockReturnValue(pendingIds)
+      mockDb.getAll.mockResolvedValue([])
+
+      const { result } = renderHook(() => useSubscriptions())
+      await act(async () => { await result.current.load() })
+
+      expect(mockFlushQueue).toHaveBeenCalled()
+      expect(mockSyncFromCloud).toHaveBeenCalledWith([], pendingIds)
+    })
   })
 })

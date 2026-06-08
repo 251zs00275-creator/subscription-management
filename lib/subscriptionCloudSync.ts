@@ -25,7 +25,9 @@ interface CloudSubscriptionRow {
   deleted_at: string | null
 }
 
-function toCloudRow(subscription: Subscription, userId: string): CloudSubscriptionRow {
+type CloudSubscriptionUpsertRow = Omit<CloudSubscriptionRow, 'deleted_at'>
+
+function toCloudRow(subscription: Subscription, userId: string): CloudSubscriptionUpsertRow {
   return {
     id: subscription.id,
     user_id: userId,
@@ -37,7 +39,6 @@ function toCloudRow(subscription: Subscription, userId: string): CloudSubscripti
     is_active: subscription.isActive,
     created_at: subscription.createdAt,
     updated_at: subscription.updatedAt,
-    deleted_at: null,
   }
 }
 
@@ -66,7 +67,10 @@ async function getSignedInUser(): Promise<User | null> {
   return data.user
 }
 
-export async function syncSubscriptionsFromCloud(local: Subscription[]): Promise<Subscription[]> {
+export async function syncSubscriptionsFromCloud(
+  local: Subscription[],
+  excludeIds: Set<string> = new Set()
+): Promise<Subscription[]> {
   const client = getSupabaseBrowserClient()
   const user = await getSignedInUser()
   if (!client || !user) return local
@@ -83,7 +87,7 @@ export async function syncSubscriptionsFromCloud(local: Subscription[]): Promise
   const remoteRows = data as CloudSubscriptionRow[]
   const localById = new Map(local.map((subscription) => [subscription.id, subscription]))
   const merged = new Map<string, Subscription>()
-  const rowsToUpload: CloudSubscriptionRow[] = []
+  const rowsToUpload: CloudSubscriptionUpsertRow[] = []
 
   for (const subscription of local) {
     merged.set(subscription.id, subscription)
@@ -91,6 +95,11 @@ export async function syncSubscriptionsFromCloud(local: Subscription[]): Promise
 
   for (const row of remoteRows) {
     const localSubscription = localById.get(row.id)
+
+    if (excludeIds.has(row.id)) {
+      merged.delete(row.id)
+      continue
+    }
 
     if (row.deleted_at && (!localSubscription || newerThan(row.deleted_at, localSubscription.updatedAt))) {
       merged.delete(row.id)

@@ -134,6 +134,28 @@ describe('syncSubscriptionsFromCloud', () => {
     expect(result.map((subscription) => subscription.id).sort()).toEqual(['sub-1', 'sub-2'])
   })
 
+  it('アップロード対象の行に deleted_at を含めない（リモートのトゥームストーンを上書きしないため）', async () => {
+    const local = [buildSubscription({ id: 'sub-1' })]
+    const { client, upsertSpy } = createMockClient({ selectResult: { data: [], error: null } })
+    mockGetSupabaseBrowserClient.mockReturnValue(client)
+
+    await syncSubscriptionsFromCloud(local)
+
+    const uploadedRows = upsertSpy.mock.calls[0][0] as Array<Record<string, unknown>>
+    expect(uploadedRows[0]).not.toHaveProperty('deleted_at')
+  })
+
+  it('excludeIds に含まれるIDのリモート行はタイムスタンプに関わらずマージ結果から除外する', async () => {
+    const local = [buildSubscription({ id: 'sub-1', updatedAt: '2026-01-01T00:00:00.000Z' })]
+    const remoteRow = buildRemoteRow({ id: 'sub-1', updated_at: '2026-05-01T00:00:00.000Z', deleted_at: null })
+    const { client } = createMockClient({ selectResult: { data: [remoteRow], error: null } })
+    mockGetSupabaseBrowserClient.mockReturnValue(client)
+
+    const result = await syncSubscriptionsFromCloud(local, new Set(['sub-1']))
+
+    expect(result.find((subscription) => subscription.id === 'sub-1')).toBeUndefined()
+  })
+
   it('リモートの方が新しい場合はリモートの内容を採用する', async () => {
     const local = [buildSubscription({ name: 'Netflix (old)', updatedAt: '2026-01-01T00:00:00.000Z' })]
     const remoteRow = buildRemoteRow({ name: 'Netflix (new)', updated_at: '2026-02-01T00:00:00.000Z' })
@@ -217,6 +239,16 @@ describe('uploadSubscriptionToCloud', () => {
 
     expect(upsertSpy).toHaveBeenCalledTimes(1)
     expect(mockToast).not.toHaveBeenCalled()
+  })
+
+  it('upsert する行に deleted_at を含めない（削除直後の追従更新でトゥームストーンを巻き戻さないため）', async () => {
+    const { client, upsertSpy } = createMockClient()
+    mockGetSupabaseBrowserClient.mockReturnValue(client)
+
+    await uploadSubscriptionToCloud(buildSubscription())
+
+    const uploadedRow = upsertSpy.mock.calls[0][0] as Record<string, unknown>
+    expect(uploadedRow).not.toHaveProperty('deleted_at')
   })
 
   it('upsert がエラーを返した場合は例外を投げ、トーストで通知する', async () => {
