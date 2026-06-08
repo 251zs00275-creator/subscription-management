@@ -97,5 +97,4 @@ npm run e2e
 
 ## 現在の改善候補
 
-- グローバルカバレッジの底上げ。`CharacterDetailDialog`、`CloudSyncButton`、`DailyLoginFlow`、`SortableSubscriptionCard`、`MiniCharacterGuide`、`subscriptionCloudSync`、`supabase`、`useGameStats`、`gameEngine`、`useConfetti` などはカバレッジが低い（多くが0%）ため、`jest.config.js` のグローバル閾値（各80%）に対して全体では未達（約69%）。優先度の高いものからテストを追加するか、閾値設定を実態に合わせて見直す。
 - `docs/goals/improvement-round-1/` で完了した PresetPicker 分離・対象6ファイルのテスト追加・Playwright 基盤を踏まえ、次の改善対象を選定する。
