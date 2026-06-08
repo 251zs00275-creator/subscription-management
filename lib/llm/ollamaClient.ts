@@ -1,6 +1,9 @@
 const DEFAULT_BASE_URL = 'http://localhost:11434'
 const DEFAULT_MODEL = 'llama3.2'
-const OLLAMA_TIMEOUT_MS = 15_000
+// ローカル LLM は端末性能やモデルサイズによって応答時間が大きく変動する
+// （実測では 9B 級のモデルで生成だけで約15秒かかるケースもある）。
+// 短すぎるタイムアウトは「到達不可」への誤判定を招くため、十分な余裕を持たせる。
+const OLLAMA_TIMEOUT_MS = 60_000
 
 export type OllamaCompletionResult =
   | { ok: true; text: string }
@@ -29,6 +32,11 @@ export async function requestOllamaCompletion(prompt: string): Promise<OllamaCom
         prompt,
         format: 'json',
         stream: false,
+        // 「思考モデル」(qwen3.5 / deepseek-r1 等) では think: true がデフォルトで
+        // 有効になり、出力が response ではなく thinking フィールドに入ってしまう上、
+        // 応答時間も大幅に伸びてタイムアウトしやすくなる。明示的に無効化することで
+        // 思考の有無に関わらず response フィールドへ直接 JSON を出力させる。
+        think: false,
       }),
       signal: controller.signal,
     })
