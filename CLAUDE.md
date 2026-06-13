@@ -82,6 +82,7 @@ docs/goals/          初期実装計画と完了記録
 - 画像参照は `lib/characters.ts` に集約する。
 - `.next/`、`coverage/`、`node_modules/`、`.swc/`、`tsconfig.tsbuildinfo` は Git 管理しない。
 - 未コミットの既存差分を勝手に戻さない。
+- git運用（ブランチ・コミット・PRのルール）は [GIT_RULES.md](GIT_RULES.md) に従う。
 
 ## 検証
 
