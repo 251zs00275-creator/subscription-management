@@ -97,4 +97,4 @@ npm run e2e
 
 ## 現在の改善候補
 
-- `docs/goals/improvement-round-1/` で完了した PresetPicker 分離・対象6ファイルのテスト追加・Playwright 基盤を踏まえ、次の改善対象を選定する。
+- `docs/goals/improvement-round-1/` で PresetPicker 分離・対象6ファイルのテスト追加・Playwright 基盤・グローバルカバレッジ80%達成が完了済み。次の改善対象を選定する。
