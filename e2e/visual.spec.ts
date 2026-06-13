@@ -12,6 +12,7 @@ async function seedSettledState(page: Page) {
   await page.addInitScript(() => {
     const today = new Date().toISOString().slice(0, 10)
     window.localStorage.setItem('has-completed-onboarding', 'true')
+    window.localStorage.setItem('guest-mode-enabled', 'true')
     window.localStorage.setItem(
       'app-settings',
       JSON.stringify({

@@ -3,6 +3,7 @@ import { CHARACTERS, type AppFeature, type CharacterId } from '@/lib/characters'
 
 const SETTINGS_KEY = 'app-settings'
 const ONBOARDING_KEY = 'has-completed-onboarding'
+const GUEST_MODE_KEY = 'guest-mode-enabled'
 
 const CHARACTER_IDS = Object.keys(CHARACTERS) as CharacterId[]
 const AFFECTION_LEVELS = [0, 40, 100, 180, 280]
@@ -89,6 +90,16 @@ export const storage = {
     localStorage.setItem(ONBOARDING_KEY, 'true')
   },
 
+  hasEnabledGuestMode(): boolean {
+    if (typeof window === 'undefined') return false
+    return localStorage.getItem(GUEST_MODE_KEY) === 'true'
+  },
+
+  enableGuestMode(): void {
+    if (typeof window === 'undefined') return
+    localStorage.setItem(GUEST_MODE_KEY, 'true')
+  },
+
   getSelectedCharacterId(): CharacterId {
     return normalizeCharacterId(storage.getSettings().selectedCharacterId)
   },
@@ -146,5 +157,6 @@ export const storage = {
     if (typeof window === 'undefined') return
     localStorage.removeItem(SETTINGS_KEY)
     localStorage.removeItem(ONBOARDING_KEY)
+    localStorage.removeItem(GUEST_MODE_KEY)
   },
 }

@@ -113,10 +113,44 @@ describe('storage', () => {
     })
   })
 
+  describe('guest mode', () => {
+    it('returns false initially', () => {
+      expect(storage.hasEnabledGuestMode()).toBe(false)
+    })
+
+    it('returns true after enableGuestMode', () => {
+      storage.enableGuestMode()
+      localStorageMock.getItem.mockReturnValueOnce('true')
+      expect(storage.hasEnabledGuestMode()).toBe(true)
+    })
+
+    it('hasEnabledGuestMode returns false when window is undefined', () => {
+      const originalWindow = global.window
+      // @ts-expect-error testing SSR env
+      delete global.window
+      expect(storage.hasEnabledGuestMode()).toBe(false)
+      global.window = originalWindow
+    })
+
+    it('enableGuestMode is no-op when window is undefined', () => {
+      const originalWindow = global.window
+      // @ts-expect-error testing SSR env
+      delete global.window
+      expect(() => storage.enableGuestMode()).not.toThrow()
+      global.window = originalWindow
+    })
+  })
+
   describe('clear', () => {
     it('removes all keys', () => {
       storage.clear()
-      expect(localStorageMock.removeItem).toHaveBeenCalledTimes(2)
+      expect(localStorageMock.removeItem).toHaveBeenCalledTimes(3)
+    })
+
+    it('resets guest mode flag', () => {
+      storage.enableGuestMode()
+      storage.clear()
+      expect(storage.hasEnabledGuestMode()).toBe(false)
     })
   })
 

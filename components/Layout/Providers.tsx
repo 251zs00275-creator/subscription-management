@@ -3,6 +3,7 @@
 import { ThemeProvider } from 'next-themes'
 import { Toaster } from '@/components/ui/toaster'
 import { AppShell } from '@/components/Layout/AppShell'
+import { AuthGate } from '@/components/Layout/AuthGate'
 import { ServiceWorkerRegister } from '@/components/Layout/ServiceWorkerRegister'
 
 interface ProvidersProps {
@@ -17,7 +18,9 @@ export function Providers({ children }: ProvidersProps) {
       enableSystem
     >
       <ServiceWorkerRegister />
-      <AppShell>{children}</AppShell>
+      <AuthGate>
+        <AppShell>{children}</AppShell>
+      </AuthGate>
       <Toaster />
     </ThemeProvider>
   )
